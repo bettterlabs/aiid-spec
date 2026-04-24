@@ -1,0 +1,20 @@
+{
+  "name": "aiid-validator",
+  "version": "0.9.0",
+  "description": "Reference validator for the .aiID Core Profile Format",
+  "main": "aiid_validator.js",
+  "bin": {
+    "aiid-validate": "./aiid_validator.js"
+  },
+  "scripts": {
+    "test": "node aiid_validator.js --test"
+  },
+  "dependencies": {
+    "yaml": "^2.0.0"
+  },
+  "license": "CC-BY-4.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bettterlabs/aiid-spec"
+  }
+}

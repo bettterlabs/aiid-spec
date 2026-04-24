@@ -1,0 +1,7 @@
+# .aiid v1.0
+aiid_version: "1.0"
+name: Pat Nguyen
+avoid: [platitudes]
+boundaries:
+  - no meetings before 10am
+  - protect deep work blocks

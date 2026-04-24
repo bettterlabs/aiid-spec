@@ -1,0 +1,7 @@
+# .aiid v1.0
+aiid_version: "1.0"
+display_name: Jordan
+style: warm, concise
+priorities:
+  - shipping v2
+  - hiring

@@ -1,0 +1,9 @@
+# .aiid v1.0
+aiid_version: "1.0"
+display_name: Explorer
+style: curious
+x_favorite_dinosaur: Stegosaurus
+x_moon_phase_preference: waning_crescent
+x_custom_scoring_system:
+  creativity: 9
+  chaos_tolerance: 7

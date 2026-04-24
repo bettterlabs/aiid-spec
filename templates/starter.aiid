@@ -1,0 +1,53 @@
+# .aiid v1.0
+aiid_version: "1.0"
+updated: "2026-03-29"
+
+# --- IDENTITY ---
+display_name: 
+role: 
+
+# --- COMMUNICATION ---
+# These are the highest-impact fields. Start here.
+style:                    # e.g. direct, warm, depth-first, casual, formal
+tone:                     # e.g. warm_precise, casual, professional, playful
+avoid:                    # e.g. [hedging, filler, platitudes, unsolicited_advice]
+# format_pref:            # e.g. prose, structured, concise, detailed
+# humor:                  # e.g. dry_wit, playful, none, dark
+
+# --- COGNITION ---
+# thinking:               # e.g. systems, first_principles, narrative, visual
+# learning:               # e.g. frameworks_first, examples_first, hands_on
+# deciding:               # e.g. data_plus_intuition, gut_first, deliberate
+
+# --- PERSONALITY (if you have assessment results) ---
+# OCEAN: 00/00/00/00/00   # bigfive-test.com — O/C/E/A/N, each 0-100
+# HEXACO: 00/00/00/00/00/00  # hexaco.org — H/E/X/A/C/O, each 0-100
+# VIA_top5: []             # viacharacter.org
+# attachment:              # attachmentproject.com — secure, anxious_preoccupied, etc.
+
+# --- VALUES ---
+# core: []                 # your 3-5 non-negotiable values
+
+# --- CURRENT FOCUS ---
+priorities:
+  - 
+  - 
+# boundaries:
+#   - 
+# goals_short:
+#   - 
+# patterns_to_watch:
+#   - 
+
+# --- AI INSTRUCTIONS ---
+# In your own words: how do you want AI to interact with you?
+ai_instructions: |
+  
+
+# --- EXTENSIONS (optional) ---
+# x_mbti: 
+# x_ennea: 
+# x_astro: Sun:___ Moon:___ Asc:___
+# x_hd_type: 
+# x_hd_strategy: 
+# x_hd_authority: 

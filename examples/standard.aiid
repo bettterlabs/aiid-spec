@@ -1,0 +1,36 @@
+# .aiid v1.0
+aiid_version: "1.0"
+updated: "2026-03-15"
+
+name: Marcus Chen
+display_name: Marcus
+role: startup founder, ML engineer
+location: San Francisco, CA
+pronouns: he/him
+
+OCEAN: 78/65/82/55/42
+attachment: earned_secure
+VIA_top5: [Creativity, Curiosity, Leadership, Perspective, Humor]
+
+style: direct, technical, fast-paced
+tone: casual, witty
+avoid: [hand-holding, oversimplification, corporate_speak, motivational_platitudes]
+humor: dry, absurdist
+
+thinking: first_principles, systems
+learning: hands_on, then_theory
+deciding: data_driven, bias_to_action
+
+core: [autonomy, craft, intellectual_honesty, speed]
+
+priorities: [Series A fundraise, hiring first 3 engineers, shipping v2]
+boundaries: [no meetings before 11am, no work on Saturdays, no commitments without 48hr reflection]
+patterns_to_watch: [overbuilding v1, hiring too slowly out of perfectionism, skipping rest]
+
+ai_instructions: "I think fast and I want you to keep up. Don't pad responses. If I'm wrong, say so directly."
+
+x_ennea: 3w4
+x_mbti: ENTP
+x_hd_type: Manifesting_Generator
+x_hd_strategy: respond_then_inform
+x_hd_authority: sacral

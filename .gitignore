@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Lockfiles (reference validators are dependency-light — contributors pick their own)
+package-lock.json
+yarn.lock
+
+# Internal workspace files (not for public repo)
+CLAUDE.md

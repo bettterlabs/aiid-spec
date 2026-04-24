@@ -1,0 +1,8 @@
+# .aiid v1.0
+aiid_version: "1.0"
+display_name: "nightowl"
+style: concise, technical
+avoid: [small_talk, platitudes]
+thinking: first_principles
+priorities: [learning Rust, building a side project]
+ai_instructions: "Skip pleasantries. Get to the point."

@@ -1,0 +1,5 @@
+# .aiid v1.0
+# REJECTION: OCEAN_detail must be a mapping/object, not a string
+aiid_version: "1.0"
+display_name: Bad
+OCEAN_detail: "high openness, low neuroticism"

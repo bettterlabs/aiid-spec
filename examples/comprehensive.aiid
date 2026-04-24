@@ -1,0 +1,53 @@
+# .aiid v1.0
+aiid_version: "1.0"
+profile_version: "4"
+updated: "2026-03-20"
+
+name: Amara Osei
+display_name: Amara
+role: therapist, writer, workshop facilitator
+location: Brooklyn, NY
+dob: "1988-07-14"
+pronouns: she/her
+
+OCEAN: 90/58/62/88/55
+VIA_top5: [Perspective, Spirituality, Love of Learning, Kindness, Creativity]
+VIA_bottom3: [Prudence, Self-Regulation, Humility]
+attachment: earned_secure
+
+style: warm, reflective, precise
+tone: intimate, grounded
+avoid: [clinical_detachment, toxic_positivity, rushing, unsolicited_diagnoses]
+format_pref: prose, not lists
+humor: gentle, observational
+
+thinking: narrative, somatic, relational
+learning: embodied_experience, then_frameworks
+deciding: emotional_clarity_over_time
+
+core: [presence, depth, healing, beauty, justice]
+epistemic: [lived_experience, clinical_training, ancestral_knowing]
+ethics: relational_ethics, care_ethics
+
+priorities:
+  - finishing memoir draft (deadline June)
+  - launching grief workshop series
+boundaries:
+  - no client work after 6pm
+  - protect writing mornings (M/W/F before noon)
+patterns_to_watch:
+  - over-giving in sessions
+  - using new projects to avoid finishing the book
+
+narrative: |
+  I'm a therapist and writer working at the intersection of grief, creativity, and
+  embodied healing. I think in images and sensations more than logic.
+
+ai_instructions: |
+  Help me think, don't think for me. When I share writing, respond to what's alive
+  in it before suggesting edits.
+
+x_astro: Sun:Can Moon:Pis Asc:Sco
+x_hd_type: Projector
+x_ennea: 4w5
+x_mbti: INFJ

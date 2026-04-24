@@ -1,0 +1,7 @@
+# .aiid v1.0
+aiid_version: "1.0"
+display_name: Kim
+role:
+  - product designer
+  - ceramicist
+style: visual, concise

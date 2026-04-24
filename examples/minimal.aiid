@@ -1,0 +1,7 @@
+# .aiid v1.0
+aiid_version: "1.0"
+display_name: Jane
+role: product designer
+OCEAN: 85/72/45/80/30
+style: direct, visual, concise
+avoid: [jargon, filler]

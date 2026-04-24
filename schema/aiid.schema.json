@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aiid-spec.org/schema/v1.0/aiid.schema.json",
+  "title": ".aiID Core Profile Format",
+  "description": "Schema for validating .aiid identity files conforming to the .aiID Core Profile Format v1.0. Files are YAML 1.2.2 documents; this schema validates the parsed data structure.",
+  "type": "object",
+
+  "required": ["aiid_version"],
+
+  "anyOf": [
+    { "required": ["name"] },
+    { "required": ["display_name"] }
+  ],
+
+  "additionalProperties": false,
+
+  "patternProperties": {
+    "^x_.+$": {
+      "description": "Custom extension field. Implementations MUST NOT reject files containing x_-prefixed fields. Implementations MUST ignore unknown extensions by default.",
+      "type": ["string", "number", "boolean", "array", "object", "null"]
+    }
+  },
+
+  "properties": {
+
+    "aiid_version": {
+      "type": "string",
+      "description": "Spec version this file conforms to. REQUIRED.",
+      "enum": ["1.0"],
+      "examples": ["1.0"]
+    },
+
+    "profile_version": {
+      "type": "string",
+      "description": "The person's own file version. Tracks how many times the person has updated their identity file.",
+      "examples": ["3", "2026.03"]
+    },
+
+    "updated": {
+      "type": "string",
+      "description": "Date the file was last modified. SHOULD be quoted ISO date string to prevent YAML date coercion.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": ["2026-03-15"]
+    },
+
+    "name": {
+      "type": "string",
+      "description": "Full name. Required if display_name is absent.",
+      "minLength": 1,
+      "examples": ["Amara Osei", "Marcus Chen"]
+    },
+
+    "display_name": {
+      "type": "string",
+      "description": "Preferred name for conversational use. Required if name is absent.",
+      "minLength": 1,
+      "examples": ["Amara", "Marcus"]
+    },
+
+    "role": {
+      "description": "Primary role(s) or occupation(s).",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": ["product designer", "therapist, writer, workshop facilitator"]
+    },
+
+    "location": {
+      "type": "string",
+      "description": "City, region, or general area. Sensitivity: Personal.",
+      "examples": ["Brooklyn, NY", "San Francisco, CA"]
+    },
+
+    "dob": {
+      "type": "string",
+      "description": "Date of birth. SHOULD be quoted to prevent YAML date coercion. Sensitivity: Sensitive.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "examples": ["1988-07-14"]
+    },
+
+    "pronouns": {
+      "type": "string",
+      "description": "Pronoun preferences.",
+      "examples": ["she/her", "he/him", "they/them"]
+    },
+
+    "OCEAN": {
+      "type": "string",
+      "description": "Big Five personality scores as five integers (0-100) separated by /. Order: Openness/Conscientiousness/Extraversion/Agreeableness/Neuroticism.",
+      "pattern": "^(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)$",
+      "examples": ["91/82/78/78/39", "85/72/45/80/30"]
+    },
+
+    "OCEAN_detail": {
+      "type": "object",
+      "description": "Facet-level breakdown of Big Five domains.",
+      "properties": {
+        "openness": { "type": "number", "minimum": 0, "maximum": 100 },
+        "conscientiousness": { "type": "number", "minimum": 0, "maximum": 100 },
+        "extraversion": { "type": "number", "minimum": 0, "maximum": 100 },
+        "agreeableness": { "type": "number", "minimum": 0, "maximum": 100 },
+        "neuroticism": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "additionalProperties": true
+    },
+
+    "HEXACO": {
+      "type": "string",
+      "description": "HEXACO personality scores as six integers (0-100) separated by /. Order: Honesty-Humility/Emotionality/Extraversion/Agreeableness/Conscientiousness/Openness.",
+      "pattern": "^(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)$",
+      "examples": ["78/45/82/65/70/91"]
+    },
+
+    "VIA_top5": {
+      "type": "array",
+      "description": "Top 5 VIA character strengths in ranked order.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "maxItems": 5,
+      "examples": [["Creativity", "Fairness", "Judgment", "Curiosity", "Perspective"]]
+    },
+
+    "VIA_bottom3": {
+      "type": "array",
+      "description": "Bottom 3 VIA character strengths.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "maxItems": 3
+    },
+
+    "attachment": {
+      "type": "string",
+      "description": "Attachment style. Sensitivity: Sensitive.",
+      "enum": ["secure", "anxious_preoccupied", "dismissive_avoidant", "fearful_avoidant", "earned_secure"]
+    },
+
+    "attachment_note": {
+      "type": "string",
+      "description": "Elaboration on attachment patterns and growth targets. Sensitivity: Sensitive."
+    },
+
+    "style": {
+      "description": "Communication style preference.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": ["direct, warm, depth-first", "warm, reflective, precise"]
+    },
+
+    "tone": {
+      "description": "Emotional register preference.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": ["warm_precise", "casual, witty"]
+    },
+
+    "avoid": {
+      "type": "array",
+      "description": "Patterns the AI should not use. Critical high-value field.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "examples": [["hedging", "filler", "platitudes", "oversimplification"]]
+    },
+
+    "format_pref": {
+      "description": "Structural preferences for responses.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": ["structured", "prose, not lists"]
+    },
+
+    "humor": {
+      "type": "string",
+      "description": "Humor preference.",
+      "examples": ["dry_wit", "playful", "none", "dark", "absurdist", "gentle, observational"]
+    },
+
+    "stop_rule": {
+      "type": "string",
+      "description": "Personal directive for conversational rhythm.",
+      "examples": ["say the point, one clarifier, stop, let it land"]
+    },
+
+    "thinking": {
+      "description": "Cognitive style.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": ["systems, first_principles", "narrative, somatic, relational"]
+    },
+
+    "learning": {
+      "description": "How the person learns best.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": ["frameworks_first", "hands_on, then_theory"]
+    },
+
+    "deciding": {
+      "description": "Decision-making approach.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": ["data_plus_intuition", "emotional_clarity_over_time"]
+    },
+
+    "neurodivergence": {
+      "type": "string",
+      "description": "Self-identified neurodivergent traits. Sensitivity: Sensitive.",
+      "examples": ["ADHD", "autism", "dyslexia"]
+    },
+
+    "core": {
+      "type": "array",
+      "description": "Core values.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "examples": [["sovereignty", "depth", "authenticity", "growth", "creativity"]]
+    },
+
+    "epistemic": {
+      "description": "How the person approaches truth and knowledge.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ],
+      "examples": [["empiricism", "bayesian_updating", "steel_man"], "pragmatic_realist"]
+    },
+
+    "ethics": {
+      "type": "string",
+      "description": "Ethical framework.",
+      "examples": ["secular_humanist", "consequentialist", "virtue_ethics", "relational_ethics, care_ethics"]
+    },
+
+    "priorities": {
+      "type": "array",
+      "description": "What the person is actively working on. Should be updated regularly.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+
+    "boundaries": {
+      "type": "array",
+      "description": "Active constraints, non-negotiables, or protective patterns. Sensitivity: Sensitive.",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+
+    "goals_short": {
+      "type": "array",
+      "description": "Near-term goals (next 30-90 days).",
+      "items": { "type": "string", "minLength": 1 }
+    },
+
+    "goals_long": {
+      "type": "array",
+      "description": "Longer-term aspirations.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+
+    "narrative": {
+      "type": "string",
+      "description": "Freeform self-description. 2-5 sentences recommended. Sensitivity: Sensitive."
+    },
+
+    "archetypes": {
+      "type": "array",
+      "description": "Self-identified archetypes from any system.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+
+    "strengths": {
+      "description": "Self-identified strengths beyond framework scores.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ]
+    },
+
+    "patterns_to_watch": {
+      "type": "array",
+      "description": "Recurring tendencies the person wants AI to gently hold them accountable to. Sensitivity: Sensitive.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+
+    "ai_instructions": {
+      "description": "Freeform directives expressing user preferences. Subordinate to system, developer, safety, legal, and product policies.",
+      "oneOf": [
+        { "type": "string", "minLength": 1 },
+        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+      ]
+    }
+  }
+}
