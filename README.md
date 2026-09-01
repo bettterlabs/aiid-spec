@@ -129,6 +129,18 @@ Test vectors: [valid](test-vectors/valid/) (21 cases) and [invalid](test-vectors
 
 ---
 
+## What .aiID is not
+
+.aiID is a personalization format. It is not an identity credential.
+
+- **It does not verify who you are.** A .aiid file is written by the person it describes and carries no signature or provenance. Nothing in the format proves that the file's author is its subject ([spec §8.1](spec/core-spec.md#81-threat-model)).
+- **It must not gate access.** Do not use a .aiid file to decide age, nationality, residency, licensure, or eligibility for anything. Attribute-gated access needs evidence independent of the person making the claim. A self-authored file relocates the claim; it does not check it.
+- **It is untrusted input to the system that reads it.** Consuming applications MUST treat .aiid content as user-authored text with no elevated privilege ([spec §6.1](spec/core-spec.md#61-general-principles)).
+
+Signatures, verifiable credentials, and access control are real needs with their own standards. A future companion spec may let a .aiid file *carry* an externally signed credential; the trust in that case belongs to the issuer, never to the format ([spec §8.7](spec/core-spec.md#87-limitations)). Today the scope is one thing: telling an AI how to work with you.
+
+---
+
 ## Repository Structure
 
 ```

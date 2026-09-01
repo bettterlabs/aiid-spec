@@ -151,6 +151,16 @@ The file format itself is intentionally simple and transparent. It's plain text.
 
 The specification does not make claims it cannot enforce. It does not say "no platform may store your data" — because a file format cannot control what a platform does with text it receives. Instead, it requires platforms to disclose their storage, retention, and training practices before ingesting .aiid content, and it provides a full threat model so users can make informed decisions about what to include and who to share with.
 
+### What .aiID is not
+
+.aiID is a personalization format, and that is the whole of its claim. It is not an identity credential, not a verification mechanism, and not an access-control token.
+
+The reason is structural, not a missing feature. Every regime that gates access on a personal attribute (age, nationality, residency, licensure, sanctions status) requires evidence that is independent of the person making the claim. A .aiid file is written by its subject. It has no signature and no provenance (§8.1 of the specification). Adding a "citizenship" field would not make the file verifiable; it would move a self-asserted claim from one place to another. A file cannot vouch for the person who wrote it.
+
+So: do not use a .aiid file to decide who may access what. Consuming applications must treat it as untrusted user input (§6.1), and nothing in it should elevate a user's privileges or stand in for a check that a liable issuer would otherwise perform.
+
+Verification is real work with real standards behind it: signed verifiable credentials, government-issued digital identity, proof-of-personhood schemes. Those are things a personalization format might one day *carry*, with the trust belonging to whoever signed the credential, never to the format itself (§8.7 names this as future companion work). Until then, the honest scope of .aiID is telling an AI how to work with you.
+
 ---
 
 ## The Ecosystem
