@@ -68,7 +68,7 @@ Design observations from practical testing and preliminary research:
 
 - YAML's low syntactic overhead (no braces, minimal quoting) reduces token consumption relative to JSON and XML for equivalent structured data.
 - Standard framework abbreviations (OCEAN, HEXACO, VIA) are commonly recognized by many frontier models, though support and interpretation quality vary.
-- Numeric trait encoding (e.g., `OCEAN: 91/82/78/78/39`) is substantially more compact than descriptive paragraphs. Preliminary evidence (Jiang et al., 2024) suggests numeric Big Five values in prompts can influence personality-relevant model outputs, though effect sizes and cross-model consistency are not yet firmly established.
+- Numeric trait encoding (e.g., `OCEAN: 74/58/63/81/27`) is substantially more compact than descriptive paragraphs. Preliminary evidence (Jiang et al., 2024) suggests numeric Big Five values in prompts can influence personality-relevant model outputs, though effect sizes and cross-model consistency are not yet firmly established.
 
 ### 2.2 Behavioral Constraints Are the Highest-Value Fields
 
@@ -197,13 +197,13 @@ These frameworks have varying degrees of empirical validation and model training
 
 | Field | Type | Source | Description |
 |-------|------|--------|-------------|
-| `OCEAN` | string | bigfive-test.com | Big Five scores as five integers separated by `/`. Order: O/C/E/A/N. Scale: 0-100. Example: `91/82/78/78/39`. |
+| `OCEAN` | string | bigfive-test.com | Big Five scores as five integers separated by `/`. Order: O/C/E/A/N. Scale: 0-100. Example: `74/58/63/81/27`. |
 | `OCEAN_detail` | map | same | Optional facet-level breakdown under each domain. |
 | `VIA_top5` | list | viacharacter.org | Top 5 character strengths in ranked order. |
 | `VIA_bottom3` | list | same | Optional. Bottom 3 strengths. |
 | `attachment` | string | attachmentproject.com | Attachment style. Values: `secure`, `anxious_preoccupied`, `dismissive_avoidant`, `fearful_avoidant`, `earned_secure`. **Sensitivity: Sensitive.** |
 | `attachment_note` | string | same | Optional elaboration on patterns and growth targets. **Sensitivity: Sensitive.** |
-| `HEXACO` | string | hexaco.org | HEXACO personality scores as six integers (0-100) separated by `/`. Order: Honesty-Humility/Emotionality/Extraversion/Agreeableness/Conscientiousness/Openness. Example: `78/45/82/65/70/91`. Six-factor model that adds Honesty-Humility to the Big Five. |
+| `HEXACO` | string | hexaco.org | HEXACO personality scores as six integers (0-100) separated by `/`. Order: Honesty-Humility/Emotionality/Extraversion/Agreeableness/Conscientiousness/Openness. Example: `64/52/71/58/69/77`. Six-factor model that adds Honesty-Humility to the Big Five. |
 
 **Extension-layer frameworks** (MBTI, Enneagram, astrology, Human Design, Gene Keys) are supported through the extension system. See Section 9 and the Extensions Registry for field definitions under `x_mbti`, `x_ennea`, `x_astro`, `x_hd`, and `x_gene_keys`.
 
@@ -213,27 +213,27 @@ These are the highest-value-per-token fields in the file. AI behavior changes mo
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `style` | string or list | How the person prefers to communicate and be communicated with. Examples: `direct`, `warm`, `depth-first`, `analytical`, `casual`, `formal`. |
+| `style` | string or list | How the person prefers to communicate and be communicated with. Examples: `direct`, `gentle`, `detailed`, `analytical`, `casual`, `formal`. |
 | `tone` | string or list | Emotional register preference. Examples: `warm_precise`, `casual`, `professional`, `playful`. |
-| `avoid` | list | Critical field. Patterns the AI should not use. Examples: `[hedging, filler, platitudes, oversimplification, unsolicited_advice]`. |
-| `format_pref` | string or list | Structural preferences. Examples: `structured`, `prose`, `concise`, `detailed`. |
-| `humor` | string | Humor preference. Examples: `dry_wit`, `playful`, `none`, `dark`, `absurdist`. |
-| `stop_rule` | string | Optional. Personal directive for conversational rhythm. Example: `"say the point, one clarifier, stop, let it land"`. |
+| `avoid` | list | Critical field. Patterns the AI should not use. Examples: `[jargon, flattery, long_disclaimers, emoji, unsolicited_advice]`. |
+| `format_pref` | string or list | Structural preferences. Examples: `bullet_points`, `prose`, `concise`, `detailed`. |
+| `humor` | string | Humor preference. Examples: `deadpan`, `silly`, `none`, `dark`, `absurdist`. |
+| `stop_rule` | string | Optional. Personal directive for conversational rhythm. Example: `"answer first, one example, then stop"`. |
 
 ### 4.5 Cognition
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `thinking` | string or list | Cognitive style. Examples: `systems`, `first_principles`, `narrative`, `visual`, `associative`. |
-| `learning` | string or list | How the person learns best. Examples: `frameworks_first`, `examples_first`, `hands_on`, `reading`. |
-| `deciding` | string or list | Decision-making approach. Examples: `data_plus_intuition`, `consensus`, `gut_first`, `deliberate`. |
+| `thinking` | string or list | Cognitive style. Examples: `visual`, `systems`, `narrative`, `first_principles`, `associative`. |
+| `learning` | string or list | How the person learns best. Examples: `theory_first`, `examples_first`, `hands_on`, `reading`. |
+| `deciding` | string or list | Decision-making approach. Examples: `data_then_gut`, `consensus`, `gut_first`, `deliberate`. |
 | `neurodivergence` | string | Optional. Self-identified neurodivergent traits relevant to AI interaction style. **Sensitivity: Sensitive.** |
 
 ### 4.6 Values
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `core` | list | Core values. Examples: `[sovereignty, depth, authenticity, growth, creativity]`. |
+| `core` | list | Core values. Examples: `[honesty, family, patience, growth, craft]`. |
 | `epistemic` | list or string | How the person approaches truth and knowledge. Examples: `[empiricism, bayesian_updating, steel_man]`. |
 | `ethics` | string | Ethical framework. Examples: `secular_humanist`, `consequentialist`, `virtue_ethics`. |
 
@@ -526,11 +526,11 @@ These extensions have defined field structures and value vocabularies. Consuming
 Users may create any `x_` field for personal use:
 
 ```yaml
-x_ecosystem: Casey Holdings
-x_content_voice: confessional warmth, passenger-seat intimacy
+x_ecosystem: Harbor & Pine Studio
+x_content_voice: plainspoken, wry, salt-air calm
 x_operating_rules: { ... }
 x_cultural_framework: Ubuntu philosophy
-x_spiritual_practice: Kundalini meditation, daily breathwork
+x_spiritual_practice: Zen sitting, Sunday hikes
 ```
 
 Custom extensions are the mechanism by which users from any cultural, spiritual, or philosophical tradition can include frameworks meaningful to them. This is by design.
@@ -668,7 +668,7 @@ pronouns: he/him
 
 OCEAN: 78/65/82/55/42
 attachment: earned_secure
-VIA_top5: [Creativity, Curiosity, Leadership, Perspective, Humor]
+VIA_top5: [Bravery, Curiosity, Leadership, Teamwork, Humor]
 
 style: direct, technical, fast-paced
 tone: casual, witty
@@ -770,9 +770,9 @@ x_astro_detail:
   mars: Aries 28° 6H
   saturn: Capricorn 2° 3H
 
-x_hd_type: Projector
-x_hd_strategy: wait_for_invitation
-x_hd_authority: emotional_solar_plexus
+x_hd_type: Reflector
+x_hd_strategy: wait_lunar_cycle
+x_hd_authority: lunar
 x_hd_profile: 2/4
 
 x_gene_keys:
@@ -872,7 +872,7 @@ For users who receive Big Five results as facet-level scores rather than domain 
 
 **Domain score = (sum of facet scores / maximum possible sum) × 100**
 
-Most Big Five tests use 6 facets per domain scored 1-20, yielding a maximum of 120 per domain. Example: facet scores of 17, 20, 19, 18, 20, 15 = 109/120 = 91.
+Most Big Five tests use 6 facets per domain scored 1-20, yielding a maximum of 120 per domain. Example: facet scores of 14, 16, 15, 15, 16, 13 = 89/120 = 74.
 
 When in doubt, users should use the percentile or overall score provided by their testing platform.
 

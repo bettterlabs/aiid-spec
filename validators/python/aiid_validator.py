@@ -252,7 +252,7 @@ def validate_aiid(data, strict=False, check_tier=False):
         if not OCEAN_RE.match(data['OCEAN']):
             result.error(
                 f"OCEAN format invalid: '{data['OCEAN']}'. "
-                "Must be five integers (0-100) separated by /. Example: 91/82/78/78/39"
+                "Must be five integers (0-100) separated by /. Example: 74/58/63/81/27"
             )
 
     # HEXACO format check
@@ -260,7 +260,7 @@ def validate_aiid(data, strict=False, check_tier=False):
         if not HEXACO_RE.match(data['HEXACO']):
             result.error(
                 f"HEXACO format invalid: '{data['HEXACO']}'. "
-                "Must be six integers (0-100) separated by /. Example: 78/45/82/65/70/91"
+                "Must be six integers (0-100) separated by /. Example: 64/52/71/58/69/77"
             )
 
     # Date format checks
@@ -398,10 +398,10 @@ def run_self_test():
     valid_cases = [
         ("Minimal display_name", {"aiid_version": "1.0", "display_name": "Alex", "style": "direct"}),
         ("Minimal name", {"aiid_version": "1.0", "name": "Alex Rivera", "tone": "casual"}),
-        ("With OCEAN", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "91/82/78/78/39", "style": "direct"}),
-        ("With HEXACO", {"aiid_version": "1.0", "display_name": "X", "HEXACO": "78/45/82/65/70/91", "style": "direct"}),
+        ("With OCEAN", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "74/58/63/81/27", "style": "direct"}),
+        ("With HEXACO", {"aiid_version": "1.0", "display_name": "X", "HEXACO": "64/52/71/58/69/77", "style": "direct"}),
         ("Pseudonymous", {"aiid_version": "1.0", "display_name": "nightowl", "avoid": ["hedging"]}),
-        ("With extensions", {"aiid_version": "1.0", "display_name": "X", "style": "direct", "x_astro": "Sun:Aqr Moon:Leo Asc:Cap"}),
+        ("With extensions", {"aiid_version": "1.0", "display_name": "X", "style": "direct", "x_astro": "Sun:Tau Moon:Sco Asc:Lib"}),
         ("OCEAN boundary 0/100", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "0/100/0/100/0", "style": "direct"}),
         ("Both identifiers", {"aiid_version": "1.0", "name": "Full Name", "display_name": "Nick", "style": "direct"}),
     ]
@@ -410,8 +410,8 @@ def run_self_test():
         ("Missing aiid_version", {"name": "Bad", "style": "direct"}, "aiid_version"),
         ("Missing identifier", {"aiid_version": "1.0", "style": "direct"}, "identifier"),
         ("Bad OCEAN format", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "high/med/low/med/low"}, "OCEAN"),
-        ("OCEAN 4 values", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "91/82/78/78"}, "OCEAN"),
-        ("OCEAN > 100", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "91/82/78/78/150"}, "OCEAN"),
+        ("OCEAN 4 values", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "74/58/63/81"}, "OCEAN"),
+        ("OCEAN > 100", {"aiid_version": "1.0", "display_name": "X", "OCEAN": "74/58/63/81/150"}, "OCEAN"),
         ("Bad attachment", {"aiid_version": "1.0", "display_name": "X", "attachment": "complicated"}, "attachment"),
         ("Bad version", {"aiid_version": "2.0", "display_name": "X"}, "aiid_version"),
         ("avoid as string", {"aiid_version": "1.0", "display_name": "X", "avoid": "hedging"}, "avoid"),

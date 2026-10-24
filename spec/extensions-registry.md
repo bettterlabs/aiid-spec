@@ -211,7 +211,7 @@ x_astro_detail:
 
 **Example:**
 ```yaml
-x_hd_type: Projector
+x_hd_type: Generator
 ```
 
 ---
@@ -228,7 +228,7 @@ x_hd_type: Projector
 
 **Example:**
 ```yaml
-x_hd_strategy: wait_for_invitation
+x_hd_strategy: wait_to_respond
 ```
 
 ---
@@ -245,7 +245,7 @@ x_hd_strategy: wait_for_invitation
 
 **Example:**
 ```yaml
-x_hd_authority: emotional_solar_plexus
+x_hd_authority: sacral
 ```
 
 ---
@@ -377,7 +377,7 @@ If the AI system does not have sufficient astrological training data, it should 
 
 Human Design type and strategy can inform how an AI offers information and support:
 
-- **Projector / Mental Projector** — Frame suggestions as invitations, not instructions. Honor rest and focused bursts over sustained output. Do not push the person to initiate.
+- **Projector / Mental Projector** — Frame suggestions as invitations, not instructions. Respect energy limits; don't assume sustained output. Do not push the person to initiate.
 - **Generator / Manifesting Generator** — Respond to what energizes them. Offer options rather than single paths. Help them follow satisfaction signals.
 - **Manifestor** — Be direct. Support their initiating energy. Help them communicate plans to others.
 - **Reflector** — Allow more processing time. Offer multiple perspectives. Do not rush decisions.
@@ -422,16 +422,16 @@ Any `x_`-prefixed field not listed in this registry is a private extension. Priv
 
 ```yaml
 # Ecosystem / context
-x_ecosystem: Casey Holdings
+x_ecosystem: Harbor & Pine Studio
 x_team: engineering
 
 # Creative / voice
-x_content_voice: confessional warmth, passenger-seat intimacy
+x_content_voice: plainspoken, wry, salt-air calm
 x_writing_style: literary nonfiction, second person
 
 # Operational
 x_operating_rules:
-  - never start a new project without checking expression test
+  - never start a new project without a written scope
   - batch communications on Tuesdays and Thursdays
 x_transit_windows:
   deep_work: 6am-11am
@@ -439,11 +439,11 @@ x_transit_windows:
 
 # Cultural / spiritual
 x_cultural_framework: Ubuntu philosophy
-x_spiritual_practice: Kundalini meditation, daily breathwork
+x_spiritual_practice: Zen sitting, Sunday hikes
 x_somatic_tools: [breathwork, body_scan, movement_before_writing]
 
 # Personal
-x_manifesto: "I am already the man who deserves everything I imagine."
+x_manifesto: "Make the thing, then make it kind."
 ```
 
 Private extensions are the mechanism by which users from any cultural, spiritual, or philosophical tradition can include frameworks meaningful to them.

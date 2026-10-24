@@ -89,7 +89,7 @@
       "type": "string",
       "description": "Big Five personality scores as five integers (0-100) separated by /. Order: Openness/Conscientiousness/Extraversion/Agreeableness/Neuroticism.",
       "pattern": "^(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)$",
-      "examples": ["91/82/78/78/39", "85/72/45/80/30"]
+      "examples": ["74/58/63/81/27", "85/72/45/80/30"]
     },
 
     "OCEAN_detail": {
@@ -109,7 +109,7 @@
       "type": "string",
       "description": "HEXACO personality scores as six integers (0-100) separated by /. Order: Honesty-Humility/Emotionality/Extraversion/Agreeableness/Conscientiousness/Openness.",
       "pattern": "^(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)/(100|[1-9]?\\d)$",
-      "examples": ["78/45/82/65/70/91"]
+      "examples": ["64/52/71/58/69/77"]
     },
 
     "VIA_top5": {
@@ -118,7 +118,7 @@
       "items": { "type": "string", "minLength": 1 },
       "minItems": 1,
       "maxItems": 5,
-      "examples": [["Creativity", "Fairness", "Judgment", "Curiosity", "Perspective"]]
+      "examples": [["Kindness", "Humor", "Teamwork", "Hope", "Bravery"]]
     },
 
     "VIA_bottom3": {
@@ -146,7 +146,7 @@
         { "type": "string", "minLength": 1 },
         { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
       ],
-      "examples": ["direct, warm, depth-first", "warm, reflective, precise"]
+      "examples": ["direct, gentle, detailed", "warm, reflective, precise"]
     },
 
     "tone": {
@@ -163,7 +163,7 @@
       "description": "Patterns the AI should not use. Critical high-value field.",
       "items": { "type": "string", "minLength": 1 },
       "minItems": 1,
-      "examples": [["hedging", "filler", "platitudes", "oversimplification"]]
+      "examples": [["jargon", "flattery", "long_disclaimers", "emoji"]]
     },
 
     "format_pref": {
@@ -172,19 +172,19 @@
         { "type": "string", "minLength": 1 },
         { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
       ],
-      "examples": ["structured", "prose, not lists"]
+      "examples": ["bullet_points", "prose, not lists"]
     },
 
     "humor": {
       "type": "string",
       "description": "Humor preference.",
-      "examples": ["dry_wit", "playful", "none", "dark", "absurdist", "gentle, observational"]
+      "examples": ["deadpan", "silly", "none", "dark", "absurdist", "gentle, observational"]
     },
 
     "stop_rule": {
       "type": "string",
       "description": "Personal directive for conversational rhythm.",
-      "examples": ["say the point, one clarifier, stop, let it land"]
+      "examples": ["answer first, one example, then stop"]
     },
 
     "thinking": {
@@ -193,7 +193,7 @@
         { "type": "string", "minLength": 1 },
         { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
       ],
-      "examples": ["systems, first_principles", "narrative, somatic, relational"]
+      "examples": ["visual, first_principles", "narrative, somatic, relational"]
     },
 
     "learning": {
@@ -202,7 +202,7 @@
         { "type": "string", "minLength": 1 },
         { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
       ],
-      "examples": ["frameworks_first", "hands_on, then_theory"]
+      "examples": ["theory_first", "hands_on, then_theory"]
     },
 
     "deciding": {
@@ -211,7 +211,7 @@
         { "type": "string", "minLength": 1 },
         { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
       ],
-      "examples": ["data_plus_intuition", "emotional_clarity_over_time"]
+      "examples": ["data_then_gut", "emotional_clarity_over_time"]
     },
 
     "neurodivergence": {
@@ -225,7 +225,7 @@
       "description": "Core values.",
       "items": { "type": "string", "minLength": 1 },
       "minItems": 1,
-      "examples": [["sovereignty", "depth", "authenticity", "growth", "creativity"]]
+      "examples": [["honesty", "family", "patience", "growth", "craft"]]
     },
 
     "epistemic": {

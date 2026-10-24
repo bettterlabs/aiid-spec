@@ -79,7 +79,7 @@ Beyond framework data and preferences, three questions surface the information t
 
 **What it populates:** `patterns_to_watch`, `boundaries`, `ai_instructions`.
 
-**Why it matters for AI:** Personality frameworks tell an AI what you're like. This question tells it what to actually do — which might be to ask "does this pass your expression test?" before helping you build yet another thing that isn't the thing.
+**Why it matters for AI:** Personality frameworks tell an AI what you're like. This question tells it what to actually do — which might be to ask "does this solve the problem you named?" before helping you build yet another thing that isn't the thing.
 
 ### Question 3 — The Daily Design
 
@@ -93,7 +93,7 @@ Beyond framework data and preferences, three questions surface the information t
 
 ### Why These Questions Matter
 
-Knowing that someone scores high on Openness and has an anxious attachment style tells an AI what they're like. Knowing that they keep starting new projects to avoid finishing the one with their name on it tells the AI what to actually do. The highest-value .aiid files contain both: the framework data and the self-knowledge that comes from honest reflection.
+Knowing that someone scores low on Extraversion and has an avoidant attachment style tells an AI what they're like. Knowing that they say yes to every request and then resent it tells the AI what to actually do. The highest-value .aiid files contain both: the framework data and the self-knowledge that comes from honest reflection.
 
 ---
 
@@ -134,11 +134,11 @@ These are supported through the extension system. Include them if you find them 
 
 ### 3.4 How to Record Assessment Results
 
-**Big Five:** Record as five numbers (0-100) in order: Openness / Conscientiousness / Extraversion / Agreeableness / Neuroticism. Example: `OCEAN: 91/82/78/78/39`
+**Big Five:** Record as five numbers (0-100) in order: Openness / Conscientiousness / Extraversion / Agreeableness / Neuroticism. Example: `OCEAN: 74/58/63/81/27`
 
 If your test gives you facet-level scores (six facets per domain), compute the domain score: `(sum of facet scores / maximum possible sum) × 100`. Most tests use facets scored 1-20, so maximum per domain is 120.
 
-**HEXACO:** Record as six numbers (0-100) in order: Honesty-Humility / Emotionality / Extraversion / Agreeableness / Conscientiousness / Openness. Example: `HEXACO: 78/45/82/65/70/91`
+**HEXACO:** Record as six numbers (0-100) in order: Honesty-Humility / Emotionality / Extraversion / Agreeableness / Conscientiousness / Openness. Example: `HEXACO: 64/52/71/58/69/77`
 
 **VIA:** Record your top 5 strengths in ranked order. Optionally record your bottom 3.
 
@@ -258,7 +258,7 @@ display_name: Alex
 role: product designer
 style: direct, visual, concise
 avoid: [jargon, filler]
-thinking: systems, first_principles
+thinking: visual, first_principles
 ```
 
 **Professional version** (for work contexts):
@@ -391,16 +391,16 @@ role:
 
 # --- COMMUNICATION ---
 # These are the highest-impact fields. Start here.
-style:                    # e.g. direct, warm, depth-first, casual, formal
+style:                    # e.g. direct, gentle, detailed, casual, formal
 tone:                     # e.g. warm_precise, casual, professional, playful
-avoid:                    # e.g. [hedging, filler, platitudes, unsolicited_advice]
-# format_pref:            # e.g. prose, structured, concise, detailed
-# humor:                  # e.g. dry_wit, playful, none, dark
+avoid:                    # e.g. [jargon, flattery, long_disclaimers, unsolicited_advice]
+# format_pref:            # e.g. prose, bullet_points, concise, detailed
+# humor:                  # e.g. deadpan, silly, none, dark
 
 # --- COGNITION ---
-# thinking:               # e.g. systems, first_principles, narrative, visual
-# learning:               # e.g. frameworks_first, examples_first, hands_on
-# deciding:               # e.g. data_plus_intuition, gut_first, deliberate
+# thinking:               # e.g. visual, systems, narrative, first_principles
+# learning:               # e.g. theory_first, examples_first, hands_on
+# deciding:               # e.g. data_then_gut, gut_first, deliberate
 
 # --- PERSONALITY (if you have assessment results) ---
 # OCEAN: 00/00/00/00/00   # bigfive-test.com — O/C/E/A/N, each 0-100

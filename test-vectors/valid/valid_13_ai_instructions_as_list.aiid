@@ -4,4 +4,4 @@ display_name: Robin
 ai_instructions:
   - "Challenge me when I'm avoiding something"
   - "Don't let me off the hook with vague plans"
-  - "Ask if it passes my expression test before helping me build it"
+  - "Ask what problem it solves before helping me build it"

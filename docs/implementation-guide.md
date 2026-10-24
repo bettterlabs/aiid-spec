@@ -344,7 +344,7 @@ Parse the compact OCEAN string into named values for richer prompting:
 
 ```python
 def parse_ocean(ocean_str):
-    """Parse '91/82/78/78/39' into named dict."""
+    """Parse '74/58/63/81/27' into named dict."""
     parts = ocean_str.split('/')
     if len(parts) != 5:
         return None
@@ -362,14 +362,14 @@ def check_conflicts(data):
     """Detect and log potential conflicts for human review."""
     conflicts = []
 
-    # Example: ai_instructions says "be blunt" but attachment is anxious
+    # Example: ai_instructions says "be blunt" but attachment is fearful_avoidant
     if 'ai_instructions' in data and 'attachment' in data:
         inst = str(data['ai_instructions']).lower()
-        if data['attachment'] == 'anxious_preoccupied':
+        if data['attachment'] == 'fearful_avoidant':
             if any(w in inst for w in ['blunt', 'harsh', 'brutal', 'don\'t soften']):
                 conflicts.append(
                     "ai_instructions requests blunt communication but "
-                    "attachment style is anxious_preoccupied. "
+                    "attachment style is fearful_avoidant. "
                     "Per conflict resolution: ai_instructions takes precedence."
                 )
 
@@ -445,6 +445,7 @@ Standard interaction. The person has a stable relational baseline. No special ca
 - Balance warmth with space. Be consistent.
 - Don't interpret withdrawal or topic-switching as disinterest.
 - Gentle pacing. Don't push for commitment or closure.
+- Note: if `ai_instructions` requests blunt or challenging interaction, honor that — the person is explicitly overriding the default calibration.
 
 **Important caveat:** These are interaction style calibrations, not therapeutic interventions. AI systems should not diagnose, pathologize, reference the attachment label in conversation, or treat attachment style as more authoritative than the person's explicit instructions.
 
@@ -485,7 +486,7 @@ Higher levels override lower levels. The model should never infer a preference t
 
 ### 5.2 Common Conflict Scenarios
 
-**Scenario:** `attachment: anxious_preoccupied` but `ai_instructions: "Be brutally honest. Don't soften anything."`  
+**Scenario:** `attachment: fearful_avoidant` but `ai_instructions: "Be brutally honest. Don't soften anything."`  
 **Resolution:** Honor ai_instructions. The person is aware of their attachment style and explicitly wants direct communication anyway.
 
 **Scenario:** `OCEAN: 25/90/20/85/70` (low openness, high agreeableness) but `style: experimental, provocative`  
@@ -494,7 +495,7 @@ Higher levels override lower levels. The model should never infer a preference t
 **Scenario:** `avoid: [unsolicited_advice]` but `patterns_to_watch: [overcommitting]` and user describes taking on a new project  
 **Resolution:** This is genuinely ambiguous. The `avoid` field says don't give unsolicited advice. The `patterns_to_watch` field implies accountability. A reasonable resolution: ask a question ("How does this fit with your current commitments?") rather than giving advice ("You're overcommitting again"). Questions honor both fields.
 
-**Scenario:** `x_hd_type: Projector` (wait for invitation) but `ai_instructions: "Challenge me proactively."`  
+**Scenario:** `x_hd_type: Reflector` (wait a lunar cycle before deciding) but `ai_instructions: "Push me to decide fast."`  
 **Resolution:** Honor ai_instructions. Extensions are level 4; ai_instructions are level 1.
 
 ### 5.3 Implementation Pattern

@@ -2,6 +2,11 @@
 
 All notable changes to the .aiID specification.
 
+## [Unreleased]
+
+**Examples:**
+- Refreshed the sample values in the examples, schema, guides, test vectors and validator self-tests with new illustrative ones. Every test vector keeps its verdict.
+
 ## [0.9] — 2026-03-29
 
 ### Community Draft 0.9 (from v1.0 Draft)

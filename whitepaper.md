@@ -73,7 +73,7 @@ The file is plain text. Any text editor can open it. YAML syntax is minimal — 
 
 ### Token-efficient
 
-Every token consumed by an identity file displaces conversation content, tool output, or reasoning capacity. YAML's low syntactic overhead, combined with compact encodings like `OCEAN: 91/82/78/78/39` (five personality dimensions in eight tokens), means the format delivers maximum behavioral signal at minimum cost. A useful identity file can fit in 80-200 tokens. A comprehensive one rarely exceeds 800.
+Every token consumed by an identity file displaces conversation content, tool output, or reasoning capacity. YAML's low syntactic overhead, combined with compact encodings like `OCEAN: 74/58/63/81/27` (five personality dimensions in eight tokens), means the format delivers maximum behavioral signal at minimum cost. A useful identity file can fit in 80-200 tokens. A comprehensive one rarely exceeds 800.
 
 ### Empirically grounded where possible, extensible everywhere else
 
@@ -103,7 +103,7 @@ This surfaces friction and patterns. The gap between identity and action. The th
 
 This bridges vision and reality. Where boundaries need to be. What "help" actually means — not in the abstract, but in the concrete shape of a Tuesday afternoon.
 
-These questions exist because personality frameworks alone are insufficient. Knowing that someone scores high on Openness and has an anxious attachment style tells an AI what they're like. Knowing that they keep starting new projects to avoid finishing the one with their name on it tells the AI what to actually do.
+These questions exist because personality frameworks alone are insufficient. Knowing that someone scores low on Extraversion and has an avoidant attachment style tells an AI what they're like. Knowing that they say yes to every request and then resent it tells the AI what to actually do.
 
 ---
 
