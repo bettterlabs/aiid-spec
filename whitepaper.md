@@ -33,6 +33,8 @@ But portability is not in their commercial interest. Platform-locked memory is a
 
 The history of technology standards shows that this pattern resolves in one of two ways: either a dominant platform becomes the de facto standard (VHS, Windows, iOS), or an open format emerges that gives users control and forces platforms to interoperate (email, HTML, RSS, USB, PDF). The first path concentrates power. The second distributes it.
 
+Since this paper was first drafted the platforms have moved one step: Claude's Import Memory (March 2026) and ChatGPT's memory export (2026) let a person move memory between assistants by generating a prompt or a JSON file and pasting it into the other product. By the vendors' own description the transfer is one-time and lossy, and the person keeps no file of their own at the end of it. That is portability as a migration event. .aiID is the file those flows are missing: the part of the context the person writes themselves, kept, edited and handed to every system the same way.
+
 The .aiID format is a bet on the second path. It proposes that the most important context about a person — how they communicate, how they think, what they're building, what they need from AI — should be owned by the person, stored in a file they control, and portable across every system they use.
 
 ---
@@ -41,7 +43,7 @@ The .aiID format is a bet on the second path. It proposes that the most importan
 
 The .aiID (AI Identity Document) is a portable, user-authored file format. It's a single text file, written in YAML, that encodes everything an AI system needs to know to interact with someone effectively from the first message.
 
-A minimal file takes thirty seconds to write:
+A minimal file takes a minute to write:
 
 ```yaml
 # .aiid v1.0
@@ -73,7 +75,7 @@ The file is plain text. Any text editor can open it. YAML syntax is minimal — 
 
 ### Token-efficient
 
-Every token consumed by an identity file displaces conversation content, tool output, or reasoning capacity. YAML's low syntactic overhead, combined with compact encodings like `OCEAN: 74/58/63/81/27` (five personality dimensions in eight tokens), means the format delivers maximum behavioral signal at minimum cost. A useful identity file can fit in 80-200 tokens. A comprehensive one rarely exceeds 800.
+Every token consumed by an identity file displaces conversation content, tool output, or reasoning capacity. YAML's low syntactic overhead, combined with compact encodings like `OCEAN: 74/58/63/81/27` (five personality dimensions in about nine tokens on current tokenizers, against about thirty for the same scores written out), means the format delivers maximum behavioral signal at minimum cost. A useful identity file can fit in 80-200 tokens. A comprehensive one rarely exceeds 800.
 
 ### Empirically grounded where possible, extensible everywhere else
 
@@ -179,7 +181,7 @@ The .aiID specification is published with a complete ecosystem ready for adoptio
 
 **Creator Guide** — including a model-neutral creation prompt that can be used in any AI system, a starter template, assessment links, and the Three Compass Questions.
 
-**Test Vectors** — 21 valid and 15 invalid example files for conformance testing.
+**Test Vectors** — 27 valid and 23 invalid example files for conformance testing, and a script that runs both validators over every one.
 
 ---
 

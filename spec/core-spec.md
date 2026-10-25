@@ -49,8 +49,12 @@ Current approaches each make different trade-offs:
 - **ChatGPT Memory** stores facts across conversations within OpenAI's ecosystem. Strengths: automatic, zero-effort. Limitations: platform-locked, no structured export, no user control over format.
 - **Claude Memory** derives information from past conversations within Anthropic's platform. Strengths: opt-in, user-controlled. Limitations: not portable, structure determined by platform.
 - **CLAUDE.md / AGENTS.md / GEMINI.md** are plain Markdown files for coding agents. Strengths: simple, developer-friendly. Limitations: scoped to developer context, not designed for personal identity.
-- **Continuum** offers a portable AI identity system using multiple Markdown files (`identity.md`, `voice.md`, `memory.md`, `context.md`). Strengths: multi-file separation of concerns enables granular updates and selective sharing. Limitations: no formal specification, higher overhead for cross-platform use, verbose format.
+- **Continuum** offers a portable AI identity system using multiple Markdown files (`identity.md`, `voice.md`, `memory.md`, `context.md`). Strengths: multi-file separation of concerns enables granular updates and selective sharing. Limitations: a small open spec repository exists with no visible adoption, higher overhead for cross-platform use, verbose format.
 - **Mem0** stores memories as individual text facts with metadata. Strengths: efficient retrieval. Limitations: fragmented, not portable across platforms.
+- **identity.txt** (Fifty Five and Five, CC BY 4.0) is a Markdown file modeled on llms.txt, with Voice, Expertise, Preferences and a consent-signal Terms section, hosted at a domain path or pasted in. Strengths: hosting convention, consent signal. Limitations: prose sections, no schema or validator.
+- **Portable AI Memory (PAM) v1.0** (February 2026) is a JSON interchange format for the memories an assistant accumulates, with a closed type taxonomy, provenance and checksums. Strengths: rigorous, covers conversations. Limitations: facts, not a self-authored profile; no vendor implements it.
+- **Agent workspace files** (OpenClaw's `SOUL.md`, `USER.md`, `MEMORY.md`; the `AGENTS.md` format now stewarded by the Linux Foundation's Agentic AI Foundation, with 60,000 or more adopting projects by its sponsor's count) describe an agent or a project to a coding agent. Strengths: wide adoption for code. Limitations: agent- and project-scoped Markdown, not a person's portable profile.
+- **Vendor import flows** (Claude's Import Memory, March 2026; ChatGPT's memory export, 2026) move memory between assistants by generating a prompt or a JSON file the person pastes into the other product. Strengths: shipped by the platforms. Limitations: one-time and lossy by the vendors' own description; the person keeps no file.
 
 The .aiID format takes a different approach: a single, portable, structured file that a person owns, that can be supplied to any system accepting user-provided context, and that prioritizes the information most likely to improve AI interaction quality. It trades multi-file granularity for single-file portability, and prose flexibility for structured token efficiency.
 
@@ -87,7 +91,9 @@ The .aiID format places high-value fields first in the recommended file order.
 
 ### 2.3 Parseable by Machines, Readable by Humans
 
-The file must be trivially parseable by any standard YAML 1.2 library (`yaml.safe_load()` in Python, `YAML.parse()` in JavaScript, `serde_yaml` in Rust) while remaining comfortable to read and edit in any text editor. No custom parsers. No special tooling required.
+The file must be trivially parseable by any standard YAML library (`YAML.parse()` from the `yaml` package in JavaScript and `serde_yaml` in Rust follow YAML 1.2) while remaining comfortable to read and edit in any text editor. No custom parsers. No special tooling required.
+
+One caution: PyYAML (`yaml.safe_load()` in Python) implements YAML 1.1, not 1.2. Under 1.1 an unquoted `yes`, `no`, `on` or `off` becomes a boolean and an unquoted date becomes a date object. The reference Python validator installs the YAML 1.2 Core Schema resolvers on top of PyYAML so both reference validators agree; an application that uses plain `safe_load()` must either do the same or rely on the quoting rule in Section 3.3.
 
 ### 2.4 Writable by Hand
 
@@ -95,7 +101,7 @@ The format is designed to be editable by non-technical users in a text editor. T
 
 ### 2.5 Progressive Depth Without Layers
 
-A .aiID file has no required maximum length. A 20-line file with a display name, OCEAN scores, and communication preferences is valid. A 200-line file with full framework data, extended priorities, and custom extensions is equally valid. The spec defines which fields exist and what they mean — not how many you must use. See Compliance Tiers (Section 12) for minimum thresholds.
+A .aiID file has no required minimum beyond the two mandatory fields, and one hard maximum of 16 KiB (Section 3.6). A 20-line file with a display name, OCEAN scores, and communication preferences is valid. A 200-line file with full framework data, extended priorities, and custom extensions is equally valid. The spec defines which fields exist and what they mean — not how many you must use. See Compliance Tiers (Section 12) for minimum thresholds.
 
 ### 2.6 Open, Free, and Owned by the Person
 
@@ -131,7 +137,9 @@ A conforming .aiid document MUST be a single YAML 1.2.2 mapping (the current pat
 
 **Comment handling:** Comments are optional human-readable annotations. They are not semantically significant to conforming parsers and will not survive round-trip serialization through most YAML libraries. Implementations MUST NOT depend on comments for parsing or behavior.
 
-**String safety:** To avoid YAML's implicit type coercion (the "Norway problem," bare date parsing, boolean coercion of `yes`/`no`/`on`/`off`), generators SHOULD quote values that could be misinterpreted. In particular, date-of-birth values SHOULD be quoted strings (e.g., `dob: "1988-07-14"`).
+**String safety:** Under YAML 1.2.2 (the version this specification requires) `yes`, `no`, `on`, `off` and bare dates are plain strings. Many deployed parsers still implement YAML 1.1 and coerce them (the "Norway problem," bare date parsing), so generators SHOULD quote values that could be misinterpreted. In particular, date-of-birth values SHOULD be quoted strings (e.g., `dob: "1988-07-14"`).
+
+**Blank values:** A key with nothing after it (`tone:` on its own line) is treated as the field being absent. Validators SHOULD warn, not reject, so a half-filled template still validates once a name is present.
 
 ### 3.4 Validation
 
@@ -143,6 +151,7 @@ A valid .aiid file:
 - MUST NOT contain duplicate keys.
 - MUST NOT use anchors, aliases, merge keys, or explicit tags.
 - MUST NOT contain fields that violate the type definitions in the Field Reference (e.g., `OCEAN` as a boolean instead of a string).
+- MUST be at most 16,384 bytes (16 KiB) and MUST keep each free-text field within the length limit given in the Field Reference (Section 3.6).
 - SHOULD begin with a comment line containing `.aiid` and a version number (e.g., `# .aiid v1.0`). This allows systems to identify the format before full parsing.
 - SHOULD contain at least one field from the Communication section (`style`, `tone`, or `avoid`), as these are the highest-impact fields for AI behavior.
 - MAY contain any combination of the fields defined in this specification.
@@ -156,7 +165,7 @@ Parsers SHOULD warn (not reject) when encountering unknown fields without the `x
 
 ### 3.6 File Size Guidelines
 
-There is no hard maximum. Practical guidance:
+**Hard maximum: 16,384 bytes (16 KiB), about 4,000 tokens.** A profile is context, not a document. The cap keeps the token cost bounded and limits how much free text a file can carry into a privileged prompt (Section 8.5). Free-text fields have their own limits, counted in Unicode code points: `narrative` 2,000; `ai_instructions` 2,000 as a string, or 40 items of 500; `attachment_note` 1,000; `humor`, `neurodivergence`, `ethics` and `stop_rule` 300; `location` 200; `name` and `display_name` 120; `pronouns` 60; the string form of any string-or-list field 500; every list item 300. The JSON Schema and both reference validators carry the same numbers. Practical guidance below the cap:
 
 - **Compact** (80-200 tokens, ~20-40 lines): Display name, personality scores, communication preferences, top priorities. Fits in any context window with negligible cost.
 - **Standard** (200-800 tokens, ~40-120 lines): Full framework data, extended identity, business context, custom extensions. Suitable for most use cases.
@@ -174,20 +183,20 @@ Fields are organized into sections. The recommended order places highest-value-p
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `aiid_version` | string | **YES** | Spec version this file conforms to. Currently `"1.0"`. |
-| `profile_version` | string | no | The person's own file version. Tracks updates. Example: `"3"` or `"2026.03"`. |
+| `aiid_version` | string | **YES** | The format version the file is written to. Currently `"1.0"`. The format is 1.0; this document is Community Draft 0.9 of it. A file written now stays valid at the 1.0 release unless the change log announces a breaking change. |
+| `profile_version` | string or integer | no | The person's own file version. Tracks updates. Example: `3`, `"3"` or `"2026.03"`. |
 | `updated` | string | no | Date the file was last modified. Format: `"YYYY-MM-DD"` (quoted to prevent YAML date coercion). Consuming applications SHOULD compute freshness state at ingestion time rather than relying on model date arithmetic. If more than 6 months old, `priorities` and `goals_short` should be treated as potentially stale. |
 
 ### 4.2 Identity
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | string | conditional | Full name. Required if `display_name` is absent. |
-| `display_name` | string | conditional | Preferred name for conversational use. Required if `name` is absent. |
+| `name` | string | conditional | Full name. Required if `display_name` is absent. At most 120 characters. |
+| `display_name` | string | conditional | Preferred name for conversational use. Required if `name` is absent. At most 120 characters. |
 | `role` | string or list | no | Primary role(s) or occupation(s). |
-| `location` | string | no | City, region, or general area. Sensitivity: Personal. |
+| `location` | string | no | City, region, or general area. At most 200 characters. Sensitivity: Personal. |
 | `dob` | string | no | Date of birth (quoted: `"1988-07-14"`). Used for age context. **Sensitivity: Sensitive.** |
-| `pronouns` | string | no | Pronoun preferences. |
+| `pronouns` | string | no | Pronoun preferences. At most 60 characters. |
 
 ### 4.3 Personality Frameworks
 
@@ -202,7 +211,7 @@ These frameworks have varying degrees of empirical validation and model training
 | `VIA_top5` | list | viacharacter.org | Top 5 character strengths in ranked order. |
 | `VIA_bottom3` | list | same | Optional. Bottom 3 strengths. |
 | `attachment` | string | attachmentproject.com | Attachment style. Values: `secure`, `anxious_preoccupied`, `dismissive_avoidant`, `fearful_avoidant`, `earned_secure`. **Sensitivity: Sensitive.** |
-| `attachment_note` | string | same | Optional elaboration on patterns and growth targets. **Sensitivity: Sensitive.** |
+| `attachment_note` | string | same | Optional elaboration on patterns and growth targets. At most 1,000 characters. **Sensitivity: Sensitive.** |
 | `HEXACO` | string | hexaco.org | HEXACO personality scores as six integers (0-100) separated by `/`. Order: Honesty-Humility/Emotionality/Extraversion/Agreeableness/Conscientiousness/Openness. Example: `64/52/71/58/69/77`. Six-factor model that adds Honesty-Humility to the Big Five. |
 
 **Extension-layer frameworks** (MBTI, Enneagram, astrology, Human Design, Gene Keys) are supported through the extension system. See Section 9 and the Extensions Registry for field definitions under `x_mbti`, `x_ennea`, `x_astro`, `x_hd`, and `x_gene_keys`.
@@ -217,8 +226,8 @@ These are the highest-value-per-token fields in the file. AI behavior changes mo
 | `tone` | string or list | Emotional register preference. Examples: `warm_precise`, `casual`, `professional`, `playful`. |
 | `avoid` | list | Critical field. Patterns the AI should not use. Examples: `[jargon, flattery, long_disclaimers, emoji, unsolicited_advice]`. |
 | `format_pref` | string or list | Structural preferences. Examples: `bullet_points`, `prose`, `concise`, `detailed`. |
-| `humor` | string | Humor preference. Examples: `deadpan`, `silly`, `none`, `dark`, `absurdist`. |
-| `stop_rule` | string | Optional. Personal directive for conversational rhythm. Example: `"answer first, one example, then stop"`. |
+| `humor` | string | Humor preference. At most 300 characters. Examples: `deadpan`, `silly`, `none`, `dark`, `absurdist`. |
+| `stop_rule` | string | Optional. Personal directive for conversational rhythm. At most 300 characters. Example: `"answer first, one example, then stop"`. |
 
 ### 4.5 Cognition
 
@@ -227,7 +236,7 @@ These are the highest-value-per-token fields in the file. AI behavior changes mo
 | `thinking` | string or list | Cognitive style. Examples: `visual`, `systems`, `narrative`, `first_principles`, `associative`. |
 | `learning` | string or list | How the person learns best. Examples: `theory_first`, `examples_first`, `hands_on`, `reading`. |
 | `deciding` | string or list | Decision-making approach. Examples: `data_then_gut`, `consensus`, `gut_first`, `deliberate`. |
-| `neurodivergence` | string | Optional. Self-identified neurodivergent traits relevant to AI interaction style. **Sensitivity: Sensitive.** |
+| `neurodivergence` | string | Optional. Self-identified neurodivergent traits relevant to AI interaction style. At most 300 characters. **Sensitivity: Sensitive.** |
 
 ### 4.6 Values
 
@@ -235,7 +244,7 @@ These are the highest-value-per-token fields in the file. AI behavior changes mo
 |-------|------|-------------|
 | `core` | list | Core values. Examples: `[honesty, family, patience, growth, craft]`. |
 | `epistemic` | list or string | How the person approaches truth and knowledge. Examples: `[empiricism, bayesian_updating, steel_man]`. |
-| `ethics` | string | Ethical framework. Examples: `secular_humanist`, `consequentialist`, `virtue_ethics`. |
+| `ethics` | string | Ethical framework. At most 300 characters. Examples: `secular_humanist`, `consequentialist`, `virtue_ethics`. |
 
 ### 4.7 Current Focus
 
@@ -252,7 +261,7 @@ These fields provide temporal context. They should be updated as the person's si
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `narrative` | string (multiline) | Optional. Freeform self-description in the person's own words. 2-5 sentences recommended. **Sensitivity: Sensitive** (may contain intimate self-disclosure). |
+| `narrative` | string (multiline) | Optional. Freeform self-description in the person's own words. 2-5 sentences recommended, 2,000 characters at most. **Sensitivity: Sensitive** (may contain intimate self-disclosure). |
 | `archetypes` | list | Optional. Self-identified archetypes from any system (Jungian, mythic, personal). |
 | `strengths` | list or string | Optional. Self-identified strengths beyond framework scores. |
 | `patterns_to_watch` | list | Optional. Recurring tendencies the person wants AI to gently hold them accountable to. Examples: `overcommitting`, `avoiding_the_hard_thing`. **Sensitivity: Sensitive.** |
@@ -263,7 +272,7 @@ This section contains explicit directives from the person to any AI system readi
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `ai_instructions` | string or list | Freeform directives. Example: `"Challenge me when I'm clearly avoiding something. Don't let me off the hook with vague plans."` |
+| `ai_instructions` | string or list | Freeform directives. At most 2,000 characters as a string, or up to 40 items of 500 characters. Example: `"Challenge me when I'm clearly avoiding something. Don't let me off the hook with vague plans."` |
 ## 5. Assessment Frameworks
 
 The .aiID format supports data from multiple assessment frameworks. No assessment is required. Every field in the file is optional. Richer input may produce a more useful identity file, but a file with only communication preferences and priorities is fully valid.
@@ -329,6 +338,8 @@ When an AI system receives a .aiid file (as system context, file upload, or API 
 
 **Normative requirement:** Consuming applications MUST treat .aiid content as untrusted user input. The presence of a .aiid file MUST NOT elevate any user-authored instruction to system or developer privilege. Applications SHOULD validate and normalize .aiid content before runtime use and SHOULD delimit or transform profile content rather than inject raw text into privileged instruction channels.
 
+**Disclosure:** Consuming applications SHOULD tell the person, once per session, that a profile is shaping the responses. One line is enough. Section 8.1 names invisible personalization as a risk; silence is not the fix for it.
+
 ### 6.2 Conflict Resolution
 
 When fields appear to contradict each other, the following priority order applies:
@@ -344,7 +355,7 @@ Consuming applications SHOULD resolve obvious conflicts at ingestion time where 
 
 ### 6.3 What Not to Do
 
-- **Do not reference the .aiid file explicitly in conversation** unless the person asks. The file should inform behavior invisibly.
+- **Do not narrate the file.** Do not quote fields back or explain which field drove which choice unless the person asks. Say once that a profile is in use (Section 6.1, Disclosure), then let it inform behavior quietly.
 - **Do not treat framework scores as deterministic.** Scores are tendencies, not sentences.
 - **Do not use extension data to make claims the person hasn't made.** If extension data suggests a pattern, the AI should not assert it as fact.
 - **Do not override explicit instructions with framework-based assumptions.** Explicit instructions always take precedence (Section 6.2).
@@ -398,10 +409,11 @@ Developers building AI-powered applications can accept .aiid files from users an
 
 ```python
 import yaml
+from aiid_validator import CoreSchemaLoader  # validators/python; YAML 1.2 typing + duplicate-key rejection
 
-# Parse the .aiid file
-with open("user.aiid", "r") as f:
-    identity = yaml.safe_load(f)
+# Parse the .aiid file (plain yaml.safe_load is YAML 1.1 and would coerce unquoted dates and yes/no)
+with open("user.aiid", "r", encoding="utf-8") as f:
+    identity = yaml.load(f, Loader=CoreSchemaLoader)
 
 # Validate required fields
 assert "aiid_version" in identity, "Missing aiid_version"
@@ -423,7 +435,7 @@ Avoid: {identity.get('avoid', 'none specified')}
 
 # Include in API call
 response = client.messages.create(
-    model="claude-sonnet-4-6",
+    model="<current model id>",
     system=system_prompt,
     messages=[{"role": "user", "content": user_message}]
 )
@@ -442,8 +454,8 @@ The .aiid format invites storage of personal and potentially sensitive data. The
 - **Leakage:** A .aiid file shared via QR code, NFC, public repository, or misconfigured upload could expose attachment style, neurodivergence, birth data, personality scores, and intimate narrative to unintended audiences.
 - **Coercion:** An employer, partner, or institution could pressure someone to share their .aiid file, revealing psychological vulnerability data.
 - **Forged files:** A .aiid file has no signature or provenance mechanism. A file could be authored by someone other than the purported subject with no way to verify authenticity.
-- **Prompt injection:** Since the file is user-authored and may be injected into system prompts, freeform fields (`narrative`, `ai_instructions`, custom extensions) are potential vectors for adversarial prompt injection.
-- **Over-accommodation:** AI systems may over-accommodate self-descriptions (e.g., treating attachment style as a clinical diagnosis, reinforcing limiting self-narratives) in ways that are unhelpful or harmful.
+- **Prompt injection:** Since the file is user-authored and may be injected into system prompts, freeform fields (`narrative`, `ai_instructions`, custom extensions) are potential vectors for adversarial prompt injection. A profile loaded every session is a persistent file, and a 2026 study of persistent memory files in coding agents found that payloads already stored in such files can steer the current and later sessions (Gadgil et al., 2026). The format's mitigations are the size and length caps (Section 3.6) and delimiting (Section 8.5); they reduce the surface, they do not remove the risk.
+- **Over-accommodation:** AI systems may over-accommodate self-descriptions (e.g., treating attachment style as a clinical diagnosis, reinforcing limiting self-narratives) in ways that are unhelpful or harmful. Two 2026 studies found that giving a model a condensed user profile made it more agreeable and more deferential (Section 14). A profile should calibrate format and pace, not soften substance; `avoid: [flattery]` and an explicit "disagree with me" in `ai_instructions` are the format's levers against this.
 - **Invisible personalization:** Users may not realize how much their interaction is being shaped by profile data, making it harder to detect bias or steering.
 
 ### 8.2 Field Sensitivity Classification
@@ -451,10 +463,12 @@ The .aiid format invites storage of personal and potentially sensitive data. The
 Fields are classified into three sensitivity tiers:
 
 **Basic** — Low-risk preference data:
-`style`, `tone`, `avoid`, `format_pref`, `humor`, `stop_rule`, `thinking`, `learning`, `deciding`, `core`, `epistemic`, `ethics`, `priorities`, `goals_short`, `goals_long`, `role`, `archetypes`, `strengths`
+`aiid_version`, `profile_version`, `updated`, `style`, `tone`, `avoid`, `format_pref`, `humor`, `stop_rule`, `thinking`, `learning`, `deciding`, `core`, `epistemic`, `ethics`, `priorities`, `goals_short`, `goals_long`, `role`, `archetypes`, `strengths`, `ai_instructions`
 
-**Personal** — Identifying or contextual data:
-`name`, `display_name`, `location`, `pronouns`
+**Personal** — Identifying or contextual data, and personality scores:
+`name`, `display_name`, `location`, `pronouns`, `OCEAN`, `OCEAN_detail`, `HEXACO`, `VIA_top5`, `VIA_bottom3`
+
+Extension fields (`x_`) default to Personal. The astrology and Human Design extensions (`x_astro_detail`, `x_hd_*`) are computed from birth date, time and place, so a file carrying them discloses birth data even when `dob` is absent; treat them as Sensitive.
 
 **Sensitive** — Psychological, health-adjacent, intimate, or high-risk self-description:
 `dob`, `neurodivergence`, `attachment`, `attachment_note`, `patterns_to_watch`, `narrative`, `boundaries`
@@ -641,7 +655,7 @@ Level B plus one or more core optional profile fields (OCEAN, VIA, attachment, e
 
 ## 13. Examples
 
-### 13.1 Minimal Valid File (Level A, ~80 tokens)
+### 13.1 Minimal Valid File (Level A, about 60 tokens)
 
 ```yaml
 # .aiid v1.0
@@ -653,7 +667,7 @@ style: direct, visual, concise
 avoid: [jargon, filler]
 ```
 
-### 13.2 Standard File (Level B, ~300 tokens)
+### 13.2 Standard File (Level C, about 320 tokens)
 
 ```yaml
 # .aiid v1.0
@@ -694,7 +708,7 @@ x_hd_strategy: respond_then_inform
 x_hd_authority: sacral
 ```
 
-### 13.3 Comprehensive File with Extensions (Level C, ~800 tokens)
+### 13.3 Comprehensive File with Extensions (Level C, about 750 tokens)
 
 ```yaml
 # .aiid v1.0
@@ -820,17 +834,20 @@ style: casual
 
 **Peer-reviewed:**
 - LLMLingua (Jiang et al., EMNLP 2023): Prompt compression research demonstrating that moderate compression (4-10x) can maintain or improve performance by filtering noise.
-- GPT-4 clinical abbreviation study (Oxford Academic / JAMIA, 2024): Evaluated abbreviation disambiguation accuracy in clinical contexts.
+- Personalization and agreeableness (MIT and Penn State, CHI 2026): a two-week study with 38 participants found that interaction context made four of five models more agreeable, and that a condensed user profile held in memory had the largest effect.
 
 **Preprint / under review:**
-- Big5-Scaler (Jiang et al., 2024; arXiv / OpenReview): Explored numeric Big Five trait values in prompts for personality-relevant model output control. Source status: preprint; venue claims should be verified before citing as peer-reviewed.
-- MetaGlyph (arXiv 2601.07354, January 2025): Explored symbolic encoding for token reduction.
+- Big5-Scaler (Cho and Cheong, arXiv 2508.06149, August 2025): numeric Big Five values embedded in prompts produced consistent, distinguishable trait expression across models, strongest with concise prompts and lower intensities; one small model tracked openness poorly. Preprint.
+- Personalization and epistemic independence (Kelley and Riedl, PsyArXiv, February 2026): across nine frontier models, personalization raised emotional validation and deference; its effect on independent judgment depended on the assistant's role.
+- Bad Memory (Gadgil, Alexander, Sunku and Roesner, arXiv 2607.14611, July 2026): prompt-injection payloads already stored in persistent memory files attacked current and later agent sessions.
+- MetaGlyph (van Gassen, arXiv 2601.07354, January 2026): symbolic compression of instructions, 62 to 81 percent token reduction with model-dependent fidelity. Marginal relevance to this format.
 
 **Benchmark / project:**
 - TOON benchmarks: Data-retrieval accuracy across frontier models using structured notation. Project benchmark, not peer-reviewed publication.
 
 **Unverified:**
 - Google Research structured context study (key-value format vs. prose): Referenced in v1.0 draft without paper title, DOI, or year. Claim removed from this revision pending verifiable citation.
+- A "GPT-4 clinical abbreviation study (JAMIA, 2024)" was cited in the 0.9 draft without a title or DOI; a search on 2026-10-24 found no matching paper. Removed pending a verifiable citation.
 
 ### Prior Art
 
@@ -838,6 +855,10 @@ style: casual
 - Claude Memory (Anthropic) — derived memories from conversation history
 - CLAUDE.md / AGENTS.md / GEMINI.md — Markdown context files for coding agents
 - Continuum — portable AI identity using multiple Markdown files
+- identity.txt — Markdown identity file modeled on llms.txt (Fifty Five and Five)
+- Portable AI Memory (PAM) v1.0 — JSON interchange format for assistant memories
+- OpenClaw workspace files (SOUL.md, USER.md, MEMORY.md) and AGENTS.md (Agentic AI Foundation) — agent and project context files
+- Claude Import Memory and ChatGPT memory export — vendor one-time migration flows (2026)
 - Mem0 — memory-as-a-service with individual text facts
 - MemGPT/Letta — self-managed memory with tool calls
 - Zep — temporal knowledge graph with entity-relationship triplets

@@ -54,9 +54,9 @@ A .aiid file is user-authored untrusted input. The core spec requires that consu
 
 ### 1.2 Step: Parse
 
-Parse the file using a YAML 1.2 library with duplicate-key detection enabled.
+Parse the file using a YAML 1.2 library with duplicate-key detection enabled. PyYAML is a YAML 1.1 library: use the reference validator's `CoreSchemaLoader` (it installs YAML 1.2 Core Schema typing and rejects duplicate keys) or ruamel.yaml. The validator also rejects anchors, aliases, explicit tags and merge keys, and enforces the 16 KiB file cap.
 
-**Python:**
+**Python (the minimal duplicate-key loader; prefer importing `CoreSchemaLoader` from the validator):**
 ```python
 import yaml
 
@@ -362,16 +362,18 @@ def check_conflicts(data):
     """Detect and log potential conflicts for human review."""
     conflicts = []
 
-    # Example: ai_instructions says "be blunt" but attachment is fearful_avoidant
-    if 'ai_instructions' in data and 'attachment' in data:
+    # Example: format_pref asks for prose while ai_instructions asks for bullet lists
+    if 'ai_instructions' in data and 'format_pref' in data:
         inst = str(data['ai_instructions']).lower()
-        if data['attachment'] == 'fearful_avoidant':
-            if any(w in inst for w in ['blunt', 'harsh', 'brutal', 'don\'t soften']):
-                conflicts.append(
-                    "ai_instructions requests blunt communication but "
-                    "attachment style is fearful_avoidant. "
-                    "Per conflict resolution: ai_instructions takes precedence."
-                )
+        pref = str(data['format_pref']).lower()
+        if 'prose' in pref and any(w in inst for w in ['bullet', 'bullets', 'list']):
+            conflicts.append(
+                "format_pref asks for prose but ai_instructions asks for lists. "
+                "Per conflict resolution: ai_instructions takes precedence."
+            )
+    # Do not add checks that read a psychological field (attachment, neurodivergence,
+    # patterns_to_watch) against the person's own instructions: the core spec (6.3)
+    # forbids psychological inference, and the person's words win anyway.
 
     return conflicts
 ```
@@ -383,6 +385,8 @@ Log conflicts for debugging but resolve them per the core spec's hierarchy: `ai_
 ## 4. Framework-Specific Behavioral Calibration
 
 This section provides guidance on how AI systems may calibrate behavior based on personality framework data. These are tendencies and suggestions, not deterministic rules. Explicit communication fields (`style`, `tone`, `avoid`) always take precedence.
+
+**Read this first.** Two 2026 studies found that handing a model a condensed user profile made it more agreeable and more deferential: a CHI 2026 study (MIT and Penn State, 38 participants over two weeks) saw the largest agreeableness increase from a profile held in memory, and a nine-model study (Kelley and Riedl, 2026) saw personalization raise emotional validation while its effect on independent judgment depended on the assistant's role. So: use framework data to choose pacing, depth and format. Never use it to soften a correction, skip a disagreement, or decide what the person can hear. If a calibration below would have the model agree more, drop it.
 
 ### 4.1 Big Five (OCEAN) Calibration
 
@@ -430,21 +434,8 @@ Attachment style describes relational patterns. In an AI interaction context, th
 **secure / earned_secure:**
 Standard interaction. The person has a stable relational baseline. No special calibration needed beyond explicit communication preferences.
 
-**anxious_preoccupied:**
-- Be clear and direct. Avoid ambiguous responses or open-ended uncertainty.
-- Provide concrete next steps when possible.
-- Consistency in tone matters more than usual.
-- Note: if `ai_instructions` requests blunt or challenging interaction, honor that — the person is explicitly overriding the default calibration.
-
-**dismissive_avoidant:**
-- Respect independence. Don't over-explain or crowd.
-- Offer support without insistence.
-- Keep responses efficient. Don't repeat points.
-
-**fearful_avoidant:**
-- Balance warmth with space. Be consistent.
-- Don't interpret withdrawal or topic-switching as disinterest.
-- Gentle pacing. Don't push for commitment or closure.
+**anxious_preoccupied / dismissive_avoidant / fearful_avoidant:**
+One calibration for all three, and it is about pacing and shape only: be consistent in tone, give concrete next steps, do not repeat points, and do not push for commitment or closure. Do not vary substance, candor or disagreement by attachment style; the core spec (6.3) forbids psychological inference, and the earlier per-style guidance here read too much like it. If `ai_instructions` asks for blunt or challenging interaction, that wins.
 - Note: if `ai_instructions` requests blunt or challenging interaction, honor that — the person is explicitly overriding the default calibration.
 
 **Important caveat:** These are interaction style calibrations, not therapeutic interventions. AI systems should not diagnose, pathologize, reference the attachment label in conversation, or treat attachment style as more authoritative than the person's explicit instructions.
@@ -543,7 +534,7 @@ def resolve_communication_style(data):
 
 ### 6.1 ChatGPT (OpenAI)
 
-**Custom Instructions:** Paste the .aiid contents (or structured extraction) into the "Custom Instructions" field. Limited to ~1500 characters, so use Tier 1-2 extraction for compact files or paste raw YAML for files under the limit.
+**Custom Instructions:** Paste the .aiid contents (or structured extraction) into the "Custom Instructions" field. Limited to 1,500 characters on the free plan and 5,000 on paid plans (OpenAI release note, July 15, 2026), so use Tier 1-2 extraction for compact files or paste raw YAML for files under the limit. The standard example in this repository is about 1,100 characters; the comprehensive one is about 1,550 and does not fit the free-plan field.
 
 **GPT Knowledge:** Upload the .aiid file to a Custom GPT's knowledge base. The GPT can reference it across conversations.
 

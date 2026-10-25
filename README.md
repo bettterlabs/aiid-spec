@@ -26,13 +26,15 @@ Copy the [model-neutral creation prompt](docs/creator-guide.md#appendix-a-model-
 
 ```bash
 # Python
-pip install pyyaml
-python validators/python/aiid_validator.py your_file.aiid --tier
+pip install pyyaml jsonschema
+python validators/python/aiid_validator.py your_file.aiid --tier --schema
 
 # JavaScript
 npm install yaml
 node validators/javascript/aiid_validator.js your_file.aiid --tier
 ```
+
+A line left blank in the template (`tone:` with nothing after it, or `- ` with nothing after it) is ignored with a warning, not an error. Files are capped at 16 KiB and every free-text field has a length limit (2,000 characters for `narrative` and `ai_instructions`; the spec's field reference lists the rest).
 
 ---
 
@@ -56,7 +58,7 @@ priorities:
 ai_instructions: "Skip the preamble. Show me options, not explanations."
 ```
 
-That's a valid, useful .aiid file. It takes 30 seconds to write and immediately changes how any AI communicates with you.
+That's a valid, useful .aiid file. The communication lines take a minute to write. The `OCEAN` line needs a Big Five test first (about ten minutes at bigfive-test.com) and can be left out. How far a given model changes its behavior varies by model; the spec's research notes say what has been measured.
 
 ---
 
@@ -100,21 +102,24 @@ MBTI, Enneagram, astrology, Human Design, and Gene Keys are supported through th
 
 ## Validation
 
-Reference validators in Python and JavaScript. Both produce matching results.
+Reference validators in Python and JavaScript. Both produce matching results, including on the YAML 1.1 versus 1.2 differences: unquoted dates and `yes`/`no` are strings in both (the Python one installs YAML 1.2 Core Schema typing on top of PyYAML, which is a YAML 1.1 parser).
 
 ```bash
-# Self-test (both pass 18/18)
+# Self-test (both pass: 42 cases in Python, 41 in JavaScript; the extra Python case is a non-string key, which a JavaScript object cannot express)
 python validators/python/aiid_validator.py --test
 node validators/javascript/aiid_validator.js --test
 
-# Validate a file
-python validators/python/aiid_validator.py my.aiid --tier --strict
+# Validate a file (--schema also runs the JSON Schema; needs jsonschema)
+python validators/python/aiid_validator.py my.aiid --tier --strict --schema
 
 # JSON output (for CI/tooling)
 node validators/javascript/aiid_validator.js my.aiid --tier --json
+
+# Every shipped file through both validators, verdicts checked against their folders
+sh test-vectors/run.sh
 ```
 
-Test vectors: [valid](test-vectors/valid/) (21 cases) and [invalid](test-vectors/invalid/) (15 cases).
+Test vectors: [valid](test-vectors/valid/) (27 cases) and [invalid](test-vectors/invalid/) (23 cases). Six invalid cases (duplicate keys, anchors and aliases, explicit tags, merge keys, a non-string key, file size) are parser-level rules: a plain JSON Schema check passes them; the reference validators reject them. One valid case (blank optional fields) fails a raw schema run, because the validators drop blank values before applying the schema.
 
 ---
 
@@ -169,15 +174,16 @@ aiid-spec/
 │       └── package.json
 │
 ├── test-vectors/
-│   ├── valid/                    # 21 valid .aiid files
-│   └── invalid/                  # 15 invalid .aiid files
+│   ├── run.sh                    # both validators over every shipped file
+│   ├── valid/                    # 27 valid .aiid files
+│   └── invalid/                  # 23 invalid .aiid files
 │
 ├── templates/
 │   └── starter.aiid              # Fill-in-the-blanks template
 │
 └── examples/
     ├── minimal.aiid              # Level A example
-    ├── standard.aiid             # Level B example
+    ├── standard.aiid             # Level C example (personality data and extensions)
     └── comprehensive.aiid        # Level C example
 ```
 

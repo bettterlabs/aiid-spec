@@ -88,8 +88,10 @@ x_mbti: INTJ
 ```yaml
 x_ennea: 5w4
 x_ennea: 2w3
-x_ennea: 8
+x_ennea: "8"
 ```
+
+Quote a bare type number (`"8"`): unquoted, YAML parses it as an integer and it fails the string pattern above (the reference validators do not check extension values; a validator that opts into this registry would).
 
 **What it encodes:** Core motivation and defense patterns. Each type has a primary fear, primary desire, and characteristic defense mechanism.
 
@@ -185,9 +187,13 @@ x_astro_detail:
 
 **Notes:** Full chart data enables more nuanced interpretation by models with relevant training data but significantly increases token cost. Users should include only as much detail as they find useful. The shorthand (`x_astro`) is sufficient for most purposes.
 
+**Sensitivity:** a natal chart is computed from birth date, time and place. A file carrying `x_astro_detail` discloses birth data even when `dob` is absent. Treat it as Sensitive (core spec 8.2).
+
 ---
 
 ## 3. Human Design
+
+**Sensitivity for every `x_hd_*` field:** a Human Design chart is computed from birth date, time and place, so these fields disclose birth data even when `dob` is absent. Treat them as Sensitive (core spec 8.2).
 
 ### 3.1 Type
 
