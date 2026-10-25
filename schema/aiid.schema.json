@@ -1,8 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://aiid-spec.org/schema/v1.0/aiid.schema.json",
+  "$id": "https://raw.githubusercontent.com/bettterlabs/aiid-spec/main/schema/aiid.schema.json",
   "title": ".aiID Core Profile Format",
-  "description": "Schema for validating .aiid identity files conforming to the .aiID Core Profile Format v1.0. Files are YAML 1.2.2 documents; this schema validates the parsed data structure.",
+  "description": "Schema for validating .aiid identity files. The format is .aiID 1.0 (the value of aiid_version); this schema ships with Community Draft 0.9 of that format. Files are YAML 1.2.2 documents; this schema validates the parsed data structure. Unknown fields without the x_ prefix are not rejected here, because the specification (section 3.4) asks validators to warn on them: they may come from a newer minor version. Duplicate keys, anchors, aliases, merge keys, explicit tags and the 16,384-byte file cap are parser-level rules the schema cannot see; the reference validators check them. The reference validators also drop blank values (a key with nothing after it, a blank list item) with a warning before applying this schema; a raw schema run over an unstripped file reports those blanks as type errors (test vector valid_24 shows this).",
+  "$comment": "Free-text fields carry maxLength, counted in Unicode code points, so a profile cannot carry a long prompt into a system context (spec sections 3.6 and 8.5).",
   "type": "object",
 
   "required": ["aiid_version"],
@@ -11,8 +12,6 @@
     { "required": ["name"] },
     { "required": ["display_name"] }
   ],
-
-  "additionalProperties": false,
 
   "patternProperties": {
     "^x_.+$": {
@@ -31,9 +30,9 @@
     },
 
     "profile_version": {
-      "type": "string",
-      "description": "The person's own file version. Tracks how many times the person has updated their identity file.",
-      "examples": ["3", "2026.03"]
+      "type": ["string", "integer"],
+      "description": "The person's own file version. A string or an integer (an unquoted number parses as an integer).",
+      "examples": ["3", 3, "2026.03"]
     },
 
     "updated": {
@@ -47,6 +46,7 @@
       "type": "string",
       "description": "Full name. Required if display_name is absent.",
       "minLength": 1,
+      "maxLength": 120,
       "examples": ["Amara Osei", "Marcus Chen"]
     },
 
@@ -54,14 +54,15 @@
       "type": "string",
       "description": "Preferred name for conversational use. Required if name is absent.",
       "minLength": 1,
+      "maxLength": 120,
       "examples": ["Amara", "Marcus"]
     },
 
     "role": {
       "description": "Primary role(s) or occupation(s).",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": ["product designer", "therapist, writer, workshop facilitator"]
     },
@@ -69,6 +70,7 @@
     "location": {
       "type": "string",
       "description": "City, region, or general area. Sensitivity: Personal.",
+      "maxLength": 200,
       "examples": ["Brooklyn, NY", "San Francisco, CA"]
     },
 
@@ -82,6 +84,7 @@
     "pronouns": {
       "type": "string",
       "description": "Pronoun preferences.",
+      "maxLength": 60,
       "examples": ["she/her", "he/him", "they/them"]
     },
 
@@ -115,7 +118,7 @@
     "VIA_top5": {
       "type": "array",
       "description": "Top 5 VIA character strengths in ranked order.",
-      "items": { "type": "string", "minLength": 1 },
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 },
       "minItems": 1,
       "maxItems": 5,
       "examples": [["Kindness", "Humor", "Teamwork", "Hope", "Bravery"]]
@@ -124,7 +127,7 @@
     "VIA_bottom3": {
       "type": "array",
       "description": "Bottom 3 VIA character strengths.",
-      "items": { "type": "string", "minLength": 1 },
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 },
       "minItems": 1,
       "maxItems": 3
     },
@@ -137,14 +140,15 @@
 
     "attachment_note": {
       "type": "string",
-      "description": "Elaboration on attachment patterns and growth targets. Sensitivity: Sensitive."
+      "description": "Elaboration on attachment patterns and growth targets. Sensitivity: Sensitive.",
+      "maxLength": 1000
     },
 
     "style": {
       "description": "Communication style preference.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": ["direct, gentle, detailed", "warm, reflective, precise"]
     },
@@ -152,8 +156,8 @@
     "tone": {
       "description": "Emotional register preference.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": ["warm_precise", "casual, witty"]
     },
@@ -161,7 +165,7 @@
     "avoid": {
       "type": "array",
       "description": "Patterns the AI should not use. Critical high-value field.",
-      "items": { "type": "string", "minLength": 1 },
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 },
       "minItems": 1,
       "examples": [["jargon", "flattery", "long_disclaimers", "emoji"]]
     },
@@ -169,8 +173,8 @@
     "format_pref": {
       "description": "Structural preferences for responses.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": ["bullet_points", "prose, not lists"]
     },
@@ -178,20 +182,22 @@
     "humor": {
       "type": "string",
       "description": "Humor preference.",
+      "maxLength": 300,
       "examples": ["deadpan", "silly", "none", "dark", "absurdist", "gentle, observational"]
     },
 
     "stop_rule": {
       "type": "string",
       "description": "Personal directive for conversational rhythm.",
+      "maxLength": 300,
       "examples": ["answer first, one example, then stop"]
     },
 
     "thinking": {
       "description": "Cognitive style.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": ["visual, first_principles", "narrative, somatic, relational"]
     },
@@ -199,8 +205,8 @@
     "learning": {
       "description": "How the person learns best.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": ["theory_first", "hands_on, then_theory"]
     },
@@ -208,8 +214,8 @@
     "deciding": {
       "description": "Decision-making approach.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": ["data_then_gut", "emotional_clarity_over_time"]
     },
@@ -217,13 +223,14 @@
     "neurodivergence": {
       "type": "string",
       "description": "Self-identified neurodivergent traits. Sensitivity: Sensitive.",
+      "maxLength": 300,
       "examples": ["ADHD", "autism", "dyslexia"]
     },
 
     "core": {
       "type": "array",
       "description": "Core values.",
-      "items": { "type": "string", "minLength": 1 },
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 },
       "minItems": 1,
       "examples": [["honesty", "family", "patience", "growth", "craft"]]
     },
@@ -231,8 +238,8 @@
     "epistemic": {
       "description": "How the person approaches truth and knowledge.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ],
       "examples": [["empiricism", "bayesian_updating", "steel_man"], "pragmatic_realist"]
     },
@@ -240,65 +247,67 @@
     "ethics": {
       "type": "string",
       "description": "Ethical framework.",
+      "maxLength": 300,
       "examples": ["secular_humanist", "consequentialist", "virtue_ethics", "relational_ethics, care_ethics"]
     },
 
     "priorities": {
       "type": "array",
       "description": "What the person is actively working on. Should be updated regularly.",
-      "items": { "type": "string", "minLength": 1 },
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 },
       "minItems": 1
     },
 
     "boundaries": {
       "type": "array",
       "description": "Active constraints, non-negotiables, or protective patterns. Sensitivity: Sensitive.",
-      "items": { "type": "string", "minLength": 1 },
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 },
       "minItems": 1
     },
 
     "goals_short": {
       "type": "array",
       "description": "Near-term goals (next 30-90 days).",
-      "items": { "type": "string", "minLength": 1 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 }
     },
 
     "goals_long": {
       "type": "array",
       "description": "Longer-term aspirations.",
-      "items": { "type": "string", "minLength": 1 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 }
     },
 
     "narrative": {
       "type": "string",
-      "description": "Freeform self-description. 2-5 sentences recommended. Sensitivity: Sensitive."
+      "description": "Freeform self-description. 2-5 sentences recommended. Sensitivity: Sensitive.",
+      "maxLength": 2000
     },
 
     "archetypes": {
       "type": "array",
       "description": "Self-identified archetypes from any system.",
-      "items": { "type": "string", "minLength": 1 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 }
     },
 
     "strengths": {
       "description": "Self-identified strengths beyond framework scores.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 500 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 300 }, "minItems": 1 }
       ]
     },
 
     "patterns_to_watch": {
       "type": "array",
       "description": "Recurring tendencies the person wants AI to gently hold them accountable to. Sensitivity: Sensitive.",
-      "items": { "type": "string", "minLength": 1 }
+      "items": { "type": "string", "minLength": 1, "maxLength": 300 }
     },
 
     "ai_instructions": {
-      "description": "Freeform directives expressing user preferences. Subordinate to system, developer, safety, legal, and product policies.",
+      "description": "Freeform directives expressing user preferences. Subordinate to system, developer, safety, legal, and product policies. At most 2000 characters as a string, or up to 40 items of 500 characters.",
       "oneOf": [
-        { "type": "string", "minLength": 1 },
-        { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        { "type": "string", "minLength": 1, "maxLength": 2000 },
+        { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 500 }, "minItems": 1, "maxItems": 40 }
       ]
     }
   }
