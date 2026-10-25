@@ -1,0 +1,5 @@
+# .aiid v1.0
+# Explicit tags are prohibited
+aiid_version: "1.0"
+display_name: Noor
+style: !!str direct

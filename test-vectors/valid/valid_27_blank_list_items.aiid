@@ -1,0 +1,8 @@
+# .aiid v1.0
+# A blank list item (the shape the starter template leaves) is ignored with a warning
+aiid_version: "1.0"
+display_name: Noor
+style: direct
+priorities:
+  - 
+  - finishing the garden wall

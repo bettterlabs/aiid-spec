@@ -1,0 +1,9 @@
+# .aiid v1.0
+# A line left blank is ignored (with a warning), not an error
+aiid_version: "1.0"
+display_name: Noor
+style: direct
+tone:
+avoid:
+priorities:
+  - finishing the garden wall

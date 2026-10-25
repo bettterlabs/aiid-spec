@@ -1,0 +1,7 @@
+# .aiid v1.0
+# Merge keys are prohibited at any level
+aiid_version: "1.0"
+display_name: Noor
+style: direct
+OCEAN_detail:
+  <<: {openness: 70}

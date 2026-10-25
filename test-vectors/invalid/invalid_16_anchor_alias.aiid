@@ -1,0 +1,6 @@
+# .aiid v1.0
+# Anchors and aliases are prohibited
+aiid_version: "1.0"
+display_name: &who Noor
+style: direct
+role: *who

@@ -1,0 +1,6 @@
+# .aiid v1.0
+# YAML 1.2 reads a leading-zero number in base 10 (09 is 9); a YAML 1.1 parser would read it as octal and fail
+aiid_version: "1.0"
+display_name: Noor
+style: direct
+x_house_number: 09

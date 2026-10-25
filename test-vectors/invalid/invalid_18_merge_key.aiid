@@ -1,0 +1,6 @@
+# .aiid v1.0
+# Merge keys are prohibited
+aiid_version: "1.0"
+display_name: Noor
+style: direct
+<<: {tone: casual}

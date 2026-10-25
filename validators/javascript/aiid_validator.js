@@ -13,6 +13,10 @@
  * Requires:
  *   npm install yaml
  *
+ * The yaml package parses with the YAML 1.2 Core Schema (schema: 'core'), so unquoted
+ * dates and yes/no/on/off stay strings, and `<<` is a plain key (rejected: merge keys
+ * are prohibited). Anchors, aliases and explicit tags are rejected too (spec 3.3).
+ *
  * Exit codes:
  *   0 = valid
  *   1 = invalid (errors found)
@@ -42,6 +46,20 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const AIID_VERSIONS = new Set(['1.0']);
 
+const MAX_FILE_BYTES = 16384; // spec section 3.6
+
+// Length caps (characters), matching schema/aiid.schema.json
+const MAX_LEN = {
+  name: 120, display_name: 120, location: 200, pronouns: 60,
+  attachment_note: 1000, humor: 300, stop_rule: 300,
+  neurodivergence: 300, ethics: 300, narrative: 2000
+};
+const AI_INSTRUCTIONS_MAX = 2000;      // as a single string
+const AI_INSTRUCTIONS_ITEM_MAX = 500;  // each list item
+const AI_INSTRUCTIONS_MAX_ITEMS = 40;
+const STRING_OR_LIST_STRING_MAX = 500;
+const LIST_ITEM_MAX = 300;
+
 const ATTACHMENT_VALUES = new Set([
   'secure', 'anxious_preoccupied', 'dismissive_avoidant',
   'fearful_avoidant', 'earned_secure'
@@ -62,24 +80,32 @@ const ARRAY_FIELDS = new Set([
 
 // Fields that must be strings
 const STRING_FIELDS = new Set([
-  'aiid_version', 'profile_version', 'updated', 'name', 'display_name',
+  'aiid_version', 'updated', 'name', 'display_name',
   'location', 'dob', 'pronouns', 'OCEAN', 'HEXACO', 'attachment',
   'attachment_note', 'humor', 'stop_rule', 'neurodivergence',
   'ethics', 'narrative'
 ]);
+
+// Fields that accept a string or an integer
+const STRING_OR_INT_FIELDS = new Set(['profile_version']);
 
 // Fields that must be maps
 const MAP_FIELDS = new Set(['OCEAN_detail']);
 
 // All known core fields
 const KNOWN_FIELDS = new Set([
-  ...STRING_FIELDS, ...ARRAY_FIELDS, ...STRING_OR_LIST_FIELDS, ...MAP_FIELDS
+  ...STRING_FIELDS, ...ARRAY_FIELDS, ...STRING_OR_LIST_FIELDS, ...STRING_OR_INT_FIELDS, ...MAP_FIELDS
 ]);
 
 // Sensitivity classifications
 const SENSITIVE_FIELDS = new Set([
   'dob', 'neurodivergence', 'attachment', 'attachment_note',
   'patterns_to_watch', 'narrative', 'boundaries'
+]);
+
+const PERSONAL_FIELDS = new Set([
+  'name', 'display_name', 'location', 'pronouns',
+  'OCEAN', 'OCEAN_detail', 'HEXACO', 'VIA_top5', 'VIA_bottom3'
 ]);
 
 // ---------------------------------------------------------------------------
@@ -135,6 +161,7 @@ function parseWithDuplicateCheck(rawText) {
 
   const duplicateErrors = [];
   const otherErrors = [];
+  const syntaxErrors = [];
 
   for (const err of doc.errors) {
     if (err.message && err.message.includes('duplicate key')) {
@@ -144,7 +171,31 @@ function parseWithDuplicateCheck(rawText) {
     }
   }
 
-  return { data: doc.toJSON(), duplicateErrors, otherErrors };
+  // Anchors, aliases and explicit tags are prohibited (spec 3.3); keys must be plain strings
+  YAML.visit(doc, {
+    Alias(key, node) {
+      syntaxErrors.push(`Alias '*${node.source}': aliases are prohibited`);
+    },
+    Node(key, node) {
+      if (node.anchor) syntaxErrors.push(`Anchor '&${node.anchor}': anchors are prohibited`);
+      if (node.tag) syntaxErrors.push(`Explicit tag '${node.tag}': explicit tags are prohibited`);
+    },
+    Pair(key, pair) {
+      const k = pair.key;
+      if (!(YAML.isScalar(k) && typeof k.value === 'string')) {
+        syntaxErrors.push(`Keys must be plain strings (got ${YAML.isScalar(k) ? JSON.stringify(k.value) : 'a complex key'})`);
+      }
+    }
+  });
+
+  let data;
+  try {
+    data = doc.errors.length === 0 ? doc.toJSON() : undefined;
+  } catch (e) {
+    otherErrors.push(e.message || String(e));
+  }
+
+  return { data, duplicateErrors, otherErrors, syntaxErrors };
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +210,63 @@ function isStringArray(val) {
   return Array.isArray(val) && val.every(item => isNonEmptyString(item));
 }
 
+function isBlank(val) {
+  return val === null || val === undefined || (typeof val === 'string' && val.trim().length === 0);
+}
+
+const REQUIRED_FIELDS = new Set(['aiid_version', 'name', 'display_name']);
+
+// Drop fields left blank (`tone:` with nothing after it) and blank list items (`- ` with nothing after it).
+// Each one is a warning, not an error. A list that ends up empty counts as blank.
+function stripBlankFields(data, result) {
+  const cleaned = {};
+  for (let [field, value] of Object.entries(data)) {
+    if (Array.isArray(value)) {
+      const kept = value.filter(item => !isBlank(item));
+      if (kept.length < value.length) {
+        result.warn(`Field '${field}' has ${value.length - kept.length} blank item(s); they were ignored`);
+      }
+      value = kept.length ? kept : null;
+    }
+    if (isBlank(value)) {
+      if (REQUIRED_FIELDS.has(field)) {
+        result.warn(`Field '${field}' is blank; a value is required`);
+      } else {
+        result.warn(`Field '${field}' is blank and was ignored (fill it in or delete the line)`);
+      }
+      continue;
+    }
+    cleaned[field] = value;
+  }
+  return cleaned;
+}
+
+// Paths of every `<<` key at any depth (merge keys are prohibited, spec 3.3)
+function findMergeKeys(obj, path = '') {
+  const hits = [];
+  if (Array.isArray(obj)) {
+    obj.forEach((v, i) => hits.push(...findMergeKeys(v, `${path}[${i}]`)));
+  } else if (obj && typeof obj === 'object') {
+    for (const [k, v] of Object.entries(obj)) {
+      const here = path ? `${path}.${k}` : k;
+      if (k === '<<') hits.push(here);
+      hits.push(...findMergeKeys(v, here));
+    }
+  }
+  return hits;
+}
+
+// Lengths are counted in Unicode code points (the same count Python and JSON Schema use), not UTF-16 units
+function charCount(value) {
+  return [...value].length;
+}
+
+function checkLen(result, label, value, cap) {
+  if (typeof value === 'string' && charCount(value) > cap) {
+    result.error(`Field '${label}' is ${charCount(value)} characters; the limit is ${cap}`);
+  }
+}
+
 function validateAiid(data, { strict = false, checkTier = false } = {}) {
   const result = new ValidationResult();
 
@@ -167,6 +275,13 @@ function validateAiid(data, { strict = false, checkTier = false } = {}) {
     result.error(`Root element must be a YAML mapping (object), got ${Array.isArray(data) ? 'array' : typeof data}`);
     return result;
   }
+
+  // Merge keys are prohibited at any level (spec 3.3); under the core schema `<<` arrives as a plain key
+  for (const where of findMergeKeys(data)) {
+    result.error(`Merge key '<<' at '${where}' is prohibited`);
+  }
+
+  data = stripBlankFields(data, result);
 
   // Required: aiid_version
   if (!('aiid_version' in data)) {
@@ -200,14 +315,18 @@ function validateAiid(data, { strict = false, checkTier = false } = {}) {
 
     if (STRING_FIELDS.has(field)) {
       if (typeof value !== 'string') {
-        // Handle YAML date coercion
+        // Only reachable when a caller parsed with a YAML 1.1 library
         if ((field === 'dob' || field === 'updated') && value instanceof Date) {
-          result.warn(`'${field}' was parsed as a Date object — YAML date coercion occurred. Quote the value: ${field}: "${value.toISOString().slice(0, 10)}"`);
+          result.warn(`'${field}' was parsed as a Date object — a YAML 1.1 parser coerced it. Quote the value: ${field}: "${value.toISOString().slice(0, 10)}"`);
         } else {
           result.error(`Field '${field}' must be a string, got ${typeof value}`);
         }
-      } else if ((field === 'name' || field === 'display_name') && value.trim().length === 0) {
-        result.error(`Field '${field}' must be non-empty`);
+      } else if (field in MAX_LEN) {
+        checkLen(result, field, value, MAX_LEN[field]);
+      }
+    } else if (STRING_OR_INT_FIELDS.has(field)) {
+      if (!(typeof value === 'string' || (typeof value === 'number' && Number.isInteger(value)))) {
+        result.error(`Field '${field}' must be a string or an integer, got ${typeof value}`);
       }
     } else if (ARRAY_FIELDS.has(field)) {
       if (!Array.isArray(value)) {
@@ -218,21 +337,32 @@ function validateAiid(data, { strict = false, checkTier = false } = {}) {
         value.forEach((item, i) => {
           if (!isNonEmptyString(item)) {
             result.error(`Field '${field}[${i}]' must be a non-empty string`);
+          } else {
+            checkLen(result, `${field}[${i}]`, item, LIST_ITEM_MAX);
           }
         });
       }
     } else if (STRING_OR_LIST_FIELDS.has(field)) {
+      const strCap = field === 'ai_instructions' ? AI_INSTRUCTIONS_MAX : STRING_OR_LIST_STRING_MAX;
+      const itemCap = field === 'ai_instructions' ? AI_INSTRUCTIONS_ITEM_MAX : LIST_ITEM_MAX;
       if (typeof value === 'string') {
         if (value.trim().length === 0) {
           result.error(`Field '${field}' must be non-empty`);
+        } else {
+          checkLen(result, field, value, strCap);
         }
       } else if (Array.isArray(value)) {
         if (value.length === 0) {
           result.warn(`Field '${field}' is an empty array`);
         }
+        if (field === 'ai_instructions' && value.length > AI_INSTRUCTIONS_MAX_ITEMS) {
+          result.error(`Field 'ai_instructions' has ${value.length} items; the limit is ${AI_INSTRUCTIONS_MAX_ITEMS}`);
+        }
         value.forEach((item, i) => {
           if (!isNonEmptyString(item)) {
             result.error(`Field '${field}[${i}]' must be a non-empty string`);
+          } else {
+            checkLen(result, `${field}[${i}]`, item, itemCap);
           }
         });
       } else {
@@ -241,6 +371,15 @@ function validateAiid(data, { strict = false, checkTier = false } = {}) {
     } else if (MAP_FIELDS.has(field)) {
       if (value === null || typeof value !== 'object' || Array.isArray(value)) {
         result.error(`Field '${field}' must be a mapping/object, got ${Array.isArray(value) ? 'array' : typeof value}`);
+      } else if (field === 'OCEAN_detail') {
+        for (const domain of ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism']) {
+          if (domain in value) {
+            const v = value[domain];
+            if (typeof v !== 'number' || !(v >= 0 && v <= 100)) {
+              result.error(`Field 'OCEAN_detail.${domain}' must be a number from 0 to 100, got ${JSON.stringify(v)}`);
+            }
+          }
+        }
       }
     }
   }
@@ -336,24 +475,26 @@ function determineTier(data) {
 // File loading
 // ---------------------------------------------------------------------------
 
-function loadAndValidate(filepath, options = {}) {
+function validateText(raw, options = {}) {
   const result = new ValidationResult();
 
-  if (!fs.existsSync(filepath)) {
-    result.error(`File not found: ${filepath}`);
+  const size = Buffer.byteLength(raw, 'utf-8');
+  if (size > MAX_FILE_BYTES) {
+    result.error(`File is ${size} bytes; the limit is ${MAX_FILE_BYTES} bytes (16 KiB)`);
     return result;
   }
 
-  const raw = fs.readFileSync(filepath, 'utf-8');
-
-  // Parse with duplicate key detection
-  const { data, duplicateErrors, otherErrors } = parseWithDuplicateCheck(raw);
+  // Parse with duplicate key detection and the prohibited-syntax scan
+  const { data, duplicateErrors, otherErrors, syntaxErrors } = parseWithDuplicateCheck(raw);
 
   for (const err of duplicateErrors) {
     result.error(`YAML duplicate key: ${err}`);
   }
   for (const err of otherErrors) {
     result.error(`YAML parse error: ${err}`);
+  }
+  for (const err of syntaxErrors) {
+    result.error(err);
   }
 
   if (result.errors.length > 0) return result;
@@ -369,6 +510,16 @@ function loadAndValidate(filepath, options = {}) {
   validationResult.errors.unshift(...result.errors);
   validationResult.warnings.unshift(...result.warnings);
   return validationResult;
+}
+
+function loadAndValidate(filepath, options = {}) {
+  if (!fs.existsSync(filepath)) {
+    const result = new ValidationResult();
+    result.error(`File not found: ${filepath}`);
+    return result;
+  }
+  const raw = fs.readFileSync(filepath, 'utf-8');
+  return validateText(raw, options);
 }
 
 // ---------------------------------------------------------------------------
@@ -387,6 +538,11 @@ function runSelfTest() {
     ['With extensions', { aiid_version: '1.0', display_name: 'X', style: 'direct', x_astro: 'Sun:Tau Moon:Sco Asc:Lib' }],
     ['OCEAN boundary 0/100', { aiid_version: '1.0', display_name: 'X', OCEAN: '0/100/0/100/0', style: 'direct' }],
     ['Both identifiers', { aiid_version: '1.0', name: 'Full Name', display_name: 'Nick', style: 'direct' }],
+    ['profile_version as integer', { aiid_version: '1.0', display_name: 'X', style: 'direct', profile_version: 3 }],
+    ['profile_version as integral float', { aiid_version: '1.0', display_name: 'X', style: 'direct', profile_version: 3.0 }],
+    ['Blank list items ignored', { aiid_version: '1.0', display_name: 'X', style: 'direct', priorities: [null, '', 'garden wall'] }],
+    ['OCEAN_detail in range', { aiid_version: '1.0', display_name: 'X', style: 'direct', OCEAN_detail: { openness: 74 } }],
+    ['Blank optional field ignored', { aiid_version: '1.0', display_name: 'X', style: 'direct', tone: null, avoid: null }],
   ];
 
   const invalidCases = [
@@ -400,6 +556,30 @@ function runSelfTest() {
     ['avoid as string', { aiid_version: '1.0', display_name: 'X', avoid: 'hedging' }, 'avoid'],
     ['VIA_top5 too many', { aiid_version: '1.0', display_name: 'X', VIA_top5: ['a', 'b', 'c', 'd', 'e', 'f'] }, 'VIA_top5'],
     ['Empty name', { aiid_version: '1.0', name: '', style: 'direct' }, 'name'],
+    ['Merge key', { aiid_version: '1.0', display_name: 'X', style: 'direct', '<<': { a: 1 } }, 'merge'],
+    ['narrative too long', { aiid_version: '1.0', display_name: 'X', style: 'direct', narrative: 'x'.repeat(2001) }, 'narrative'],
+    ['Nested merge key', { aiid_version: '1.0', display_name: 'X', style: 'direct', OCEAN_detail: { '<<': { a: 1 } } }, 'merge'],
+    ['profile_version as non-integral float', { aiid_version: '1.0', display_name: 'X', style: 'direct', profile_version: 3.5 }, 'profile_version'],
+    ['OCEAN_detail out of range', { aiid_version: '1.0', display_name: 'X', style: 'direct', OCEAN_detail: { openness: 170 } }, 'OCEAN_detail'],
+    ['Emoji narrative counted in code points', { aiid_version: '1.0', display_name: 'X', style: 'direct', narrative: '\u{1F600}'.repeat(2001) }, 'narrative'],
+  ];
+
+  // Parser-level cases run on raw text (YAML 1.2 typing, prohibited syntax, size)
+  const validTextCases = [
+    ['Unquoted date stays a string (YAML 1.2)', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\nupdated: 2026-03-15\n'],
+    ['yes/no/on/off stay strings (YAML 1.2)', 'aiid_version: "1.0"\ndisplay_name: X\nhumor: no\navoid: [yes, on, off]\n'],
+    ['Leading-zero number is fine (YAML 1.2 reads 09 as 9)', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\nx_house_number: 09\n'],
+    ['Template-shaped blank list items', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\npriorities:\n  - \n  - garden wall\n'],
+    ['Emoji narrative under the cap (1500 code points)', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\nnarrative: ' + '\u{1F600}'.repeat(1500) + '\n'],
+  ];
+  const invalidTextCases = [
+    ['Duplicate key', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\nstyle: casual\n'],
+    ['Anchor and alias', 'aiid_version: "1.0"\ndisplay_name: &n X\nstyle: *n\n'],
+    ['Explicit tag', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: !!str direct\n'],
+    ['Merge key in text', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\n<<: {a: 1}\n'],
+    ['File too large', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\nnarrative: |\n' + ('  ' + 'x'.repeat(78) + '\n').repeat(250)],
+    ['Non-string key in text', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\n123: x\n'],
+    ['Complex key in text', 'aiid_version: "1.0"\ndisplay_name: X\nstyle: direct\n? [a, b]\n: x\n'],
   ];
 
   let passed = 0;
@@ -425,6 +605,29 @@ function runSelfTest() {
     } else {
       failed++;
       console.log(`  [FAIL] Invalid case: ${label} — expected errors but got none`);
+    }
+  }
+
+  for (const [label, text] of validTextCases) {
+    const r = validateText(text);
+    if (r.valid) {
+      passed++;
+      console.log(`  [PASS] Valid text: ${label}`);
+    } else {
+      failed++;
+      console.log(`  [FAIL] Valid text: ${label}`);
+      r.errors.forEach(e => console.log(`         ERROR: ${e}`));
+    }
+  }
+
+  for (const [label, text] of invalidTextCases) {
+    const r = validateText(text);
+    if (!r.valid) {
+      passed++;
+      console.log(`  [PASS] Invalid text: ${label}`);
+    } else {
+      failed++;
+      console.log(`  [FAIL] Invalid text: ${label} — expected errors but got none`);
     }
   }
 
@@ -492,6 +695,7 @@ Exit codes:
 
 module.exports = {
   validateAiid,
+  validateText,
   loadAndValidate,
   parseWithDuplicateCheck,
   determineTier,

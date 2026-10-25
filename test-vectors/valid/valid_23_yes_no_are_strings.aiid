@@ -1,0 +1,6 @@
+# .aiid v1.0
+# YAML 1.2: yes, no, on and off are plain strings, not booleans
+aiid_version: "1.0"
+display_name: Noor
+humor: no
+avoid: [yes, on, off]

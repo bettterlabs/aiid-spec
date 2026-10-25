@@ -1,0 +1,6 @@
+# .aiid v1.0
+# Keys must be plain strings
+aiid_version: "1.0"
+display_name: Noor
+style: direct
+123: a number as a key
